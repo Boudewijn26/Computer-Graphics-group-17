@@ -14,12 +14,14 @@ Agenda:
 1. Opening:
 
 2. Vaststellen agenda:
-Over twee weken de minimal requirements afhebben.
-Donderdag hele dag eraan werken
+
 
 3. Algemene bespreking project:
 
 4. Weekplanning:
+Over twee weken de minimal requirements afhebben.
+Donderdag hele dag eraan werken
+
 Samenwerking in groepjes van 2:
 - Alessandro  & Tim: Ray intersection with planes, and triangles
 - Martijn & Vincent: Recursive raytracing to simulate specular materials (using reflection)
@@ -28,5 +30,6 @@ Samenwerking in groepjes van 2:
 5: Wvttk:
 Taart kopen als je te laat komt, of als je je werk niet af hebt.
 Half 10 Donderdag afspreken.
+Mocht je denken je werk niet af te krijgen, meld het dan.
 
 6. Afsluiting:
