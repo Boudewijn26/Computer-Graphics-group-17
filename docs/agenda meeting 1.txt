@@ -25,7 +25,7 @@ Donderdag hele dag eraan werken
 Samenwerking in groepjes van 2:
 - Alessandro  & Tim: Ray intersection with planes, and triangles
 - Martijn & Vincent: Recursive raytracing to simulate specular materials (using reflection)
-- Boudewijn: Computation of the shading at the first impact point 
+- Boudewijn: A (simple) spatial acceleration structure (see below for details)
 
 5: Wvttk:
 Taart kopen als je te laat komt, of als je je werk niet af hebt.
