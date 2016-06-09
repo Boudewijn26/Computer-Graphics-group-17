@@ -121,3 +121,16 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	
 	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
 }
+
+Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
+{
+	Vec3Df dir = testRayDestination;
+	Vec3Df origin = testRayOrigin;
+	dir.normalize();
+	origin.normalize();
+	planePoint.normalize();
+
+	float t = Vec3Df::dotProduct((planePoint - origin), planeNormal) / Vec3Df::dotProduct(dir, planeNormal);
+	Vec3Df res = origin + t*dir;
+	return res;
+}
