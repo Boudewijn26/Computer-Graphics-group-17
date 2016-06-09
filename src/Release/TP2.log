@@ -1,0 +1,31 @@
+﻿Build started 7-6-2016 20:56:35.
+     1>Project "C:\Users\wnguyen\Downloads\shading\TP2\TP2.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(388,5): warning MSB8028: The intermediate directory (Release\) contains files shared from another project (TP2.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Users\wnguyen\Downloads\shading\TP2\include\ /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\RaytracingProjectFinal\RaytracingProject\main.cpp ..\..\RaytracingProjectFinal\RaytracingProject\mesh.cpp ..\..\RaytracingProjectFinal\RaytracingProject\raytracing.cpp
+         main.cpp
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(25): warning C4305: 'initializing' : truncation from 'double' to 'const float'
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(129): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(152): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(184): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(220): warning C4244: '=' : conversion from 'GLdouble' to 'float', possible loss of data
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(221): warning C4244: '=' : conversion from 'GLdouble' to 'float', possible loss of data
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(222): warning C4244: '=' : conversion from 'GLdouble' to 'float', possible loss of data
+     1>c:\users\wnguyen\downloads\raytracingprojectfinal\raytracingproject\traqueboule.h(240): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+         mesh.cpp
+     1>..\..\RaytracingProjectFinal\RaytracingProject\mesh.cpp(160): warning C4018: '<' : signed/unsigned mismatch
+     1>..\..\RaytracingProjectFinal\RaytracingProject\mesh.cpp(155): warning C4101: 'mtlfile' : unreferenced local variable
+         raytracing.cpp
+     1>..\..\RaytracingProjectFinal\RaytracingProject\raytracing.cpp(57): warning C4018: '<' : signed/unsigned mismatch
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\wnguyen\Downloads\shading\TP2\Release\Raytracing.exe" /NOLOGO freeglut.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\wnguyen\Downloads\shading\TP2\Release\Raytracing.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\wnguyen\Downloads\shading\TP2\Release\Raytracing.lib" /MACHINE:X86 /SAFESEH Release\main.obj
+         Release\mesh.obj
+         Release\raytracing.obj
+         Generating code
+         Finished generating code
+         TP2.vcxproj -> C:\Users\wnguyen\Downloads\shading\TP2\Release\Raytracing.exe
+     1>Done Building Project "C:\Users\wnguyen\Downloads\shading\TP2\TP2.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.47

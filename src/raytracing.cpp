@@ -1,8 +1,16 @@
 #include <stdio.h>
-#ifdef WIN32
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+#else
+#ifdef _WIN32
 #include <windows.h>
 #endif
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <GL/glut.h>
+#endif
 #include "raytracing.h"
 
 
@@ -23,7 +31,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("cube.obj", true);
+    MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
