@@ -13,8 +13,7 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-BoundingBox first;
-BoundingBox second;
+std::vector<BoundingBox> boxes;
 
 void drawBox(BoundingBox box);
 
@@ -28,7 +27,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("cube.obj", true);
+    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -37,9 +36,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 
 	BoundingBox main = BoundingBox(MyMesh);
-	std::pair<BoundingBox, BoundingBox> boxes = main.doSplit();
-	first = boxes.first;
-	second = boxes.second;
+	boxes = main.split(500);
 }
 
 //return the color of your pixel.
@@ -73,9 +70,10 @@ void yourDebugDraw()
 	//the color to white, it will be reset to the previous 
 	//state after the pop.
 
-	drawBox(first);
-	drawBox(second);
-
+	for (std::vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
+		BoundingBox box = *it;
+		drawBox(box);
+	}
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);

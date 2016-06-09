@@ -10,15 +10,19 @@ public:
 	BoundingBox(const Mesh& mesh);
 	BoundingBox(std::vector<Vertex> vertices, std::vector<Triangle> triangles);
 
-	std::vector<Vec3Df> getVertices();
-	std::vector<int> getDrawingIndices();
+	std::vector<Vec3Df> getVertices() const;
+	std::vector<int> getDrawingIndices() const;
 
-	std::pair<BoundingBox, BoundingBox> doSplit();
+	std::vector<BoundingBox> split(int threshold);
+
 private:
 	void init(std::vector<Vertex> vertices, std::vector<Triangle> triangles);
+	std::pair<BoundingBox, BoundingBox> doSplit();
+	void split(std::vector<BoundingBox> &boxes, int threshold);
 
 	std::vector<Vertex> vertices;
 	std::vector<Triangle> triangles;
 	Vec3Df origin;
+
 	Vec3Df dimensions;
 };

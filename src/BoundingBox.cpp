@@ -58,12 +58,18 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	}
 
 	float sum = 0;
+//    float min = std::numeric_limits<float>::max();
+//    float max = std::numeric_limits<float>::min();
 	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
 		Triangle triangle = *it;
 
 		sum += vertices[triangle.v[0]].p[axis] + vertices[triangle.v[1]].p[axis] + vertices[triangle.v[2]].p[axis];
+//        min = std::min({min, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
+//        max = std::max({max, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
+
 	}
-	float average = sum / triangles.size();
+	float splitPoint = sum / (triangles.size() * 3);
+//	float splitPoint = (max + min) / 2;
 
 	std::vector<Triangle> firstBox;
 	std::vector<Triangle> secondBox;
@@ -75,11 +81,11 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 
 		for (int i = 0; i < 3; i++) {
 			float pointOnAxis = vertices[triangle.v[i]].p[axis];
-			if (!inFirst && (pointOnAxis < average)) {
+			if (!inFirst && (pointOnAxis < splitPoint)) {
 				firstBox.push_back(triangle);
 				inFirst = true;
 			}
-			if (!inSecond && (pointOnAxis > average)) {
+			if (!inSecond && (pointOnAxis > splitPoint)) {
 				secondBox.push_back(triangle);
 				inSecond = true;
 			}
@@ -91,7 +97,7 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	return std::pair<BoundingBox, BoundingBox>(first, second);
 }
 
-std::vector<Vec3Df> BoundingBox::getVertices() {
+std::vector<Vec3Df> BoundingBox::getVertices() const {
 	std::vector<Vec3Df> vertices;
 	vertices.push_back(origin);
 	vertices.push_back(Vec3Df(origin[0], origin[1], origin[2] + dimensions[2]));
@@ -104,7 +110,7 @@ std::vector<Vec3Df> BoundingBox::getVertices() {
 	return vertices;
 }
 
-std::vector<int> BoundingBox::getDrawingIndices() {
+std::vector<int> BoundingBox::getDrawingIndices() const {
 	std::vector<int> indices;
 	indices.push_back(0);
 	indices.push_back(1);
@@ -155,3 +161,28 @@ std::vector<int> BoundingBox::getDrawingIndices() {
 	indices.push_back(7);
 	return indices;
 }
+
+void BoundingBox::split(std::vector<BoundingBox>& boxes, int threshold) {
+	if (triangles.size() < threshold) {
+		boxes.push_back(BoundingBox(vertices, triangles));
+	}
+	std::pair<BoundingBox, BoundingBox> pair = doSplit();
+	if (pair.first.triangles.size() < threshold) {
+		boxes.push_back(pair.first);
+	} else {
+		pair.first.split(boxes, threshold);
+	}
+	if (pair.second.triangles.size() < threshold) {
+		boxes.push_back(pair.second);
+	} else {
+		pair.second.split(boxes, threshold);
+	}
+}
+
+std::vector<BoundingBox> BoundingBox::split(int threshold) {
+	std::vector<BoundingBox> boxes;
+
+	split(boxes, threshold);
+	return boxes;
+}
+
