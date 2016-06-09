@@ -3,6 +3,7 @@
 #include <windows.h>
 #endif
 #include <GL/glut.h>
+#include <GL/gl.h>
 #include "raytracing.h"
 
 
@@ -12,6 +13,10 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+BoundingBox first;
+BoundingBox second;
+
+void drawBox(BoundingBox box);
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -30,6 +35,11 @@ void init()
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
+
+	BoundingBox main = BoundingBox(MyMesh);
+	std::pair<BoundingBox, BoundingBox> boxes = main.doSplit();
+	first = boxes.first;
+	second = boxes.second;
 }
 
 //return the color of your pixel.
@@ -63,6 +73,8 @@ void yourDebugDraw()
 	//the color to white, it will be reset to the previous 
 	//state after the pop.
 
+	drawBox(first);
+	drawBox(second);
 
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -85,6 +97,21 @@ void yourDebugDraw()
 	////using a glTranslate, it can be shifted to whereever you want
 	////if you produce a sphere renderer, this 
 	////triangulated sphere is nice for the preview
+}
+
+void drawBox(BoundingBox box) {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glBegin(GL_TRIANGLES);
+	glColor3f(1, 1, 1);
+	std::vector<Vec3Df> boxVertices = box.getVertices();
+	std::vector<int> boxIndices = box.getDrawingIndices();
+	for(std::vector<int>::iterator it = boxIndices.begin(); it != boxIndices.end(); ++it) {
+		int index = *it;
+		Vec3Df vertex = boxVertices[index];
+		glVertex3f(vertex[0], vertex[1], vertex[2]);
+	}
+	glEnd();
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 }
 
 

@@ -1,13 +1,21 @@
-#include "BoundingBox.h" 
+#include "BoundingBox.h"
 #include <limits>
 #include <algorithm>
 
 BoundingBox::BoundingBox() {
-	init(Vec3Df(0, 0, 0), Vec3Df(0, 0, 0));
+	origin = Vec3Df(0, 0, 0);
+	dimensions = Vec3Df(0, 0, 0);
 }
 
 BoundingBox::BoundingBox(const Mesh& mesh) {
-	std::vector<Vertex> vertices = mesh.vertices;
+	init(mesh.vertices, mesh.triangles);
+}
+
+BoundingBox::BoundingBox(std::vector<Vertex> vertices, std::vector<Triangle> triangles) {
+	init(vertices, triangles);
+}
+
+void BoundingBox::init(std::vector<Vertex> vertices, std::vector<Triangle> triangles) {
 	float lowestX = std::numeric_limits<float>::max();
 	float lowestY = lowestX;
 	float lowestZ = lowestX;
@@ -16,30 +24,71 @@ BoundingBox::BoundingBox(const Mesh& mesh) {
 	float highestY = highestX;
 	float highestZ = highestX;
 
-	for (std::vector<Vertex>::iterator it = vertices.begin(); it != vertices.end(); ++it) {
-		Vec3Df vertex = (*it).p;
-		lowestX = std::min(lowestX, vertex[0]);
-		highestX = std::max(highestX, vertex[0]);
+	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		Triangle triangle = *it;
+		for (int i = 0; i < 3; i++) {
+			Vec3Df vertex = vertices[triangle.v[i]].p;
+			lowestX = std::min(lowestX, vertex[0]);
+			highestX = std::max(highestX, vertex[0]);
 
-		lowestY = std::min(lowestY, vertex[1]);
-		highestY = std::max(highestY, vertex[1]);
+			lowestY = std::min(lowestY, vertex[1]);
+			highestY = std::max(highestY, vertex[1]);
 
-		lowestZ = std::min(lowestZ, vertex[2]);
-		highestZ = std::max(highestZ, vertex[2]);		
+			lowestZ = std::min(lowestZ, vertex[2]);
+			highestZ = std::max(highestZ, vertex[2]);
+		}
 	}
 
-	Vec3Df origin = Vec3Df(lowestX, lowestY, lowestZ);
+	this->origin = Vec3Df(lowestX, lowestY, lowestZ);
 	Vec3Df farCorner = Vec3Df(highestX, highestY, highestZ);
-	init(origin, farCorner - origin);
+	this->dimensions = farCorner - origin;
+
+	this->vertices = vertices;
+	this->triangles = triangles;
 }
 
-BoundingBox::BoundingBox(const Vec3Df& origin, const Vec3Df& dimensions) {
-	init(origin, dimensions);
-}
+std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
+	int axis;
+	if (dimensions[0] > std::max(dimensions[1], dimensions[2])) {
+		axis = 0;
+	} else if (dimensions[1] > std::max(dimensions[0], dimensions[2])) {
+		axis = 1;
+	} else {
+		axis = 2;
+	}
 
-void BoundingBox::init(const Vec3Df& origin, const Vec3Df& dimensions) {
-	this->origin = origin;
-	this->dimensions = dimensions;
+	float sum = 0;
+	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		Triangle triangle = *it;
+
+		sum += vertices[triangle.v[0]].p[axis] + vertices[triangle.v[1]].p[axis] + vertices[triangle.v[2]].p[axis];
+	}
+	float average = sum / triangles.size();
+
+	std::vector<Triangle> firstBox;
+	std::vector<Triangle> secondBox;
+
+	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		Triangle triangle = *it;
+		bool inFirst = false;
+		bool inSecond = false;
+
+		for (int i = 0; i < 3; i++) {
+			float pointOnAxis = vertices[triangle.v[i]].p[axis];
+			if (!inFirst && (pointOnAxis < average)) {
+				firstBox.push_back(triangle);
+				inFirst = true;
+			}
+			if (!inSecond && (pointOnAxis > average)) {
+				secondBox.push_back(triangle);
+				inSecond = true;
+			}
+		}
+	}
+
+	BoundingBox first = BoundingBox(vertices, firstBox);
+	BoundingBox second = BoundingBox(vertices, secondBox);
+	return std::pair<BoundingBox, BoundingBox>(first, second);
 }
 
 std::vector<Vec3Df> BoundingBox::getVertices() {
