@@ -1,6 +1,43 @@
 #include "BoundingBox.h" 
+#include <limits>
+#include <algorithm>
+
+BoundingBox::BoundingBox() {
+	init(Vec3Df(0, 0, 0), Vec3Df(0, 0, 0));
+}
+
+BoundingBox::BoundingBox(const Mesh& mesh) {
+	std::vector<Vertex> vertices = mesh.vertices;
+	float lowestX = std::numeric_limits<float>::max();
+	float lowestY = lowestX;
+	float lowestZ = lowestX;
+
+	float highestX = std::numeric_limits<float>::min();
+	float highestY = highestX;
+	float highestZ = highestX;
+
+	for (std::vector<Vertex>::iterator it = vertices.begin(); it != vertices.end(); ++it) {
+		Vec3Df vertex = (*it).p;
+		lowestX = std::min(lowestX, vertex[0]);
+		highestX = std::max(highestX, vertex[0]);
+
+		lowestY = std::min(lowestY, vertex[1]);
+		highestY = std::max(highestY, vertex[1]);
+
+		lowestZ = std::min(lowestZ, vertex[2]);
+		highestZ = std::max(highestZ, vertex[2]);		
+	}
+
+	Vec3Df origin = Vec3Df(lowestX, lowestY, lowestZ);
+	Vec3Df farCorner = Vec3Df(highestX, highestY, highestZ);
+	init(origin, farCorner - origin);
+}
 
 BoundingBox::BoundingBox(const Vec3Df& origin, const Vec3Df& dimensions) {
+	init(origin, dimensions);
+}
+
+void BoundingBox::init(const Vec3Df& origin, const Vec3Df& dimensions) {
 	this->origin = origin;
 	this->dimensions = dimensions;
 }
