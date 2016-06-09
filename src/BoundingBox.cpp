@@ -1,6 +1,6 @@
 #include "BoundingBox.h" 
 
-BoundingBox::BoundingBox(Vec3Df origin, Vec3Df dimensions) {
+BoundingBox::BoundingBox(const Vec3Df& origin, const Vec3Df& dimensions) {
 	this->origin = origin;
 	this->dimensions = dimensions;
 }

@@ -5,7 +5,7 @@
 
 class BoundingBox {
 public:
-	BoundingBox(Vec3Df origin, Vec3Df dimensions);
+	BoundingBox(const Vec3Df& origin, const Vec3Df& dimensions);
 	std::vector<Vec3Df> getVertices();
 	std::vector<int> getDrawingIndices();
 
