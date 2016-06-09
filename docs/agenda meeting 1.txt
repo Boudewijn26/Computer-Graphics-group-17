@@ -21,8 +21,8 @@ Donderdag hele dag eraan werken
 
 4. Weekplanning:
 Samenwerking in groepjes van 2:
-- Alessandro  & Tim: 
-- Martijn & Vincent: 
+- Alessandro  & Tim: Ray intersection with planes, and triangles
+- Martijn & Vincent: Recursive raytracing to simulate specular materials (using reflection)
 - Boudewijn: Computation of the shading at the first impact point 
 
 5: Wvttk:
