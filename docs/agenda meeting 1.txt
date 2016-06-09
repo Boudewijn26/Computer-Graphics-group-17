@@ -1,4 +1,5 @@
 Aanwezig:
+Alessandro, Vincent, Tim, Boudewijn, Martijn
 
 Agenda:
 1. Opening
@@ -9,3 +10,23 @@ Agenda:
 	- Taakverdeling deze week
 5. Wvttk
 6. Afsluiting
+
+1. Opening:
+
+2. Vaststellen agenda:
+Over twee weken de minimal requirements afhebben.
+Donderdag hele dag eraan werken
+
+3. Algemene bespreking project:
+
+4. Weekplanning:
+Samenwerking in groepjes van 2:
+- Alessandro  & Tim: 
+- Martijn & Vincent: 
+- Boudewijn: Computation of the shading at the first impact point 
+
+5: Wvttk:
+Taart kopen als je te laat komt, of als je je werk niet af hebt.
+Half 10 Donderdag afspreken.
+
+6. Afsluiting:
