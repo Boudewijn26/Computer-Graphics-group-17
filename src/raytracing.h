@@ -2,6 +2,7 @@
 #define RAYTRACING_Hjdslkjfadjfasljf
 #include <vector>
 #include "mesh.h"
+#include "BoundingBox.h"
 
 //Welcome to your MAIN PROJECT...
 //THIS IS THE MOST relevant code for you!
