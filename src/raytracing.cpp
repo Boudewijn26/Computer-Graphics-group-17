@@ -17,6 +17,8 @@ std::vector<BoundingBox> boxes;
 
 void drawBox(BoundingBox box);
 
+bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2);
+
 //use this function for any preprocessing of the mesh.
 void init()
 {
@@ -37,6 +39,13 @@ void init()
 
 	BoundingBox main = BoundingBox(MyMesh);
 	boxes = main.split(500);
+
+	Triangle testTriangle = Triangle(0, 0, 1, 1, 2, 2);
+	MyMesh.vertices[0] = Vec3Df(-1, -1, 0);
+	MyMesh.vertices[2] = Vec3Df(1, -1, 0);
+	MyMesh.vertices[1] = Vec3Df(0, 1, 0);
+
+	calculateHit(Vec3Df(0, 0, -1), Vec3Df(0, 0, 1), testTriangle);
 }
 
 //return the color of your pixel.
@@ -61,59 +70,46 @@ bool calculateHit(const Vec3Df & origin, const Vec3Df & dest, const Triangle & t
     Vec3Df v0 = MyMesh.vertices[triangle.v[0]].p;
     Vec3Df v1 = MyMesh.vertices[triangle.v[1]].p;
     Vec3Df v2 = MyMesh.vertices[triangle.v[2]].p;
+	return isTriangleHit(origin, dest, v0, v1, v2);
 
-    // compute plane's normal
-    Vec3Df v0v1 = v1 - v0;
-    Vec3Df v0v2 = v2 - v0;
-    // no need to normalize
-    Vec3Df N = Vec3Df::crossProduct(v0v2, v0v1); // N
-    float area2 = N.getLength();
-    float t;
-    float u;
-    float v;
+}
 
-// Step 1: finding P
+bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2) {// compute plane's normal
+	// Based on Moller-Trumbore intersection algorithm
+	Vec3Df e0 = v1 - v0;
+	Vec3Df e1 = v2 - v0;
 
-// check if ray and plane are parallel ?
-    float NdotRayDirection = Vec3Df::dotProduct(dest, N);
-    if (fabs(NdotRayDirection) < 0.0000001) // almost 0
-    return false; // they are parallel so they don't intersect !
+	Vec3Df direction = dest - origin;
+	direction.normalize();
 
-// compute d parameter using equation 2
-    float d = Vec3Df::dotProduct(v0, N);
+	Vec3Df p = Vec3Df::crossProduct(direction, e1);
 
-// compute t (equation 3)
-    t = (Vec3Df::dotProduct(origin, N) + d) / NdotRayDirection;
-// check if the triangle is in behind the ray
-    if (t < 0) return false; // the triangle is behind
+	float det = Vec3Df::dotProduct(e0, p);
 
-// compute the intersection point using equation 1
-    Vec3Df P = origin + t * dest;
+	if (fabs(det) < 0.0000001) {
+		return false;
+	}
+	float invDet = 1.f / det;
 
-// Step 2: inside-outside test
-    Vec3Df C; // vector perpendicular to triangle's plane
+	Vec3Df t = origin - v0;
 
-// edge 0
-    Vec3Df edge0 = v1 - v0;
-    Vec3Df vp0 = P - v0;
-    C = Vec3Df::crossProduct(vp0, edge0);
-    if (Vec3Df::dotProduct(C, N) < 0) return false; // P is on the right side
+	float u = Vec3Df::dotProduct(t, p) * invDet;
 
-// edge 1
-    Vec3Df edge1 = v2 - v1;
-    Vec3Df vp1 = P - v1;
-    C = Vec3Df::crossProduct(vp1, edge1);
-    u = C.getLength() / area2;
-    if (Vec3Df::dotProduct(C, N) < 0) return false; // P is on the right side
+	if (u < 0 || u > 1) {
+		return false;
+	}
 
-// edge 2
-    Vec3Df edge2 = v0 - v2;
-    Vec3Df vp2 = P - v2;
-    C = Vec3Df::crossProduct(vp2, edge2);
-    v = C.getLength() / area2;
-    if (Vec3Df::dotProduct(C, N) < 0) return false; // P is on the right side;
+	Vec3Df q = Vec3Df::crossProduct(t, e0);
 
-return true; // this ray hits the triangle
+	float v = Vec3Df::dotProduct(direction, q) * invDet;
+
+	if (v < 0 || u + v > 1) {
+		return false;
+	}
+
+	float a = Vec3Df::dotProduct(e1, q) * invDet;
+
+	return a > 0.0000001;
 }
 
 void yourDebugDraw()
