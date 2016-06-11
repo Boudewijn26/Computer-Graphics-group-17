@@ -1,0 +1,8 @@
+//
+// Created by fastjur on 11-6-16.
+//
+
+#ifndef COMPUTER_GRAPHICS_GROUP_17_HSV_H
+#define COMPUTER_GRAPHICS_GROUP_17_HSV_H
+
+#endif //COMPUTER_GRAPHICS_GROUP_17_HSV_H
