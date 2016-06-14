@@ -159,3 +159,22 @@ Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
 	Vec3Df res = origin + t*dir;
 	return res;
 }
+
+Vec3Df intersectionWithSphere(const Vec3Df & rayOrigin, const Vec3Df & rayDest, const float & radius)
+{
+	Vec3Df p1 = rayOrigin;
+	Vec3Df p2 = rayDest;
+
+	float A = p2[0] - p1[0];
+	float B = p2[1] - p1[1];
+	float C = p2[2] - p1[2];
+
+	float a = (A*A) + (B*B) + (C*C);
+	float b = 2 * ((A*p1[0]) + (B*p1[1]) + (C*p1[2]));
+	float c = (p1[0] * p1[0]) + (p1[1] * p1[1]) + (p1[2] * p1[2]) - (radius*radius);
+
+	float t = (-b + sqrtf((b*b) - (4 * a*c))) / (2 * a);
+
+	Vec3Df res = p1 + t*(p2 - p1);
+	return res;
+}
