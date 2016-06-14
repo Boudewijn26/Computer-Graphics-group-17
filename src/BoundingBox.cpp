@@ -2,16 +2,16 @@
 #include <limits>
 #include <algorithm>
 
-BoundingBox::BoundingBox() {
+BoundingBox::BoundingBox() : vertices(std::vector<Vertex>()) {
 	origin = Vec3Df(0, 0, 0);
 	dimensions = Vec3Df(0, 0, 0);
 }
 
-BoundingBox::BoundingBox(const Mesh& mesh) {
+BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices) {
 	init(mesh.vertices, mesh.triangles);
 }
 
-BoundingBox::BoundingBox(std::vector<Vertex> vertices, std::vector<Triangle> triangles) {
+BoundingBox::BoundingBox(const std::vector<Vertex>& vertices, std::vector<Triangle> triangles) : vertices(vertices) {
 	init(vertices, triangles);
 }
 
@@ -43,15 +43,30 @@ void BoundingBox::init(std::vector<Vertex> vertices, std::vector<Triangle> trian
 	Vec3Df farCorner = Vec3Df(highestX, highestY, highestZ);
 	this->dimensions = farCorner - origin;
 
-	this->vertices = vertices;
 	this->triangles = triangles;
 }
 
 std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	int axis;
-	if (dimensions[0] > std::max(dimensions[1], dimensions[2])) {
+	float xAxisSum = 0;
+	float yAxisSum = 0;
+	float zAxisSum = 0;
+	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		Triangle triangle = *it;
+		float xAxisValue = vertices[triangle.v[0]].p[0] + vertices[triangle.v[1]].p[0] + vertices[triangle.v[2]].p[0];
+		float yAxisValue = vertices[triangle.v[0]].p[1] + vertices[triangle.v[1]].p[1] + vertices[triangle.v[2]].p[1];
+		float zAxisValue = vertices[triangle.v[0]].p[2] + vertices[triangle.v[1]].p[2] + vertices[triangle.v[2]].p[2];
+		xAxisSum += xAxisValue * xAxisValue;
+		yAxisSum += yAxisValue * yAxisValue;
+		zAxisSum += zAxisValue * zAxisValue;
+		//        min = std::min({min, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
+		//        max = std::max({max, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
+
+	}
+
+	if (xAxisSum > std::max(yAxisSum, zAxisSum)) {
 		axis = 0;
-	} else if (dimensions[1] > std::max(dimensions[0], dimensions[2])) {
+	} else if (yAxisSum > std::max(xAxisSum, zAxisSum)) {
 		axis = 1;
 	} else {
 		axis = 2;

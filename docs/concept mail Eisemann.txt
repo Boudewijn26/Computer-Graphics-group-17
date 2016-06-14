@@ -1,0 +1,13 @@
+[TI1806] Group Problem – Group Number 17
+@e.eisemann@tudelft.nl
+
+Dear mister Eisemann,
+
+We'd like to report a minor issue with our group. Although we got off to a good start last Thursday, we're not sure if we currently have all our members. We kindly ask you to inform us of the size of our group and if you have any suggestions how to deal with latecomers.
+
+We'd also like to mention our mild dissatisfaction with the way this project was organised. The inability to know your group members is a major issue in the making of a good working plan. This is also made more difficult by the indetermined deadline. As a group we think this means the project is disproportianately testing our ability to self organise instead of our knowledge and understanding of computer graphics. Also the massive variation in group sizes seems rather unreasonable to us. This furthers our concern regarding the fairness of the grades resulting from this project.
+
+That being said, we are doing good and are on track to successfully complete this project.
+
+Kind regards,
+Group 17

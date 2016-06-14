@@ -15,7 +15,7 @@ set(SOURCE_FILES
     src/raytracing.h
     src/traqueboule.h
     src/Vec3D.h
-    src/Vertex.h)
+    src/Vertex.h src/hsv.h)
 
 add_executable(Computer_Graphics_group_17 ${SOURCE_FILES})
 
