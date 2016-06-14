@@ -3,7 +3,6 @@
 #include <vector>
 #include "mesh.h"
 #include "BoundingBox.h"
-#include "hsv.h"
 
 //Welcome to your MAIN PROJECT...
 //THIS IS THE MOST relevant code for you!
