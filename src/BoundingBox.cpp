@@ -48,43 +48,23 @@ void BoundingBox::init(std::vector<Vertex> vertices, std::vector<Triangle> trian
 
 std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	int axis;
-	float xAxisSum = 0;
-	float yAxisSum = 0;
-	float zAxisSum = 0;
-	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		Triangle triangle = *it;
-		float xAxisValue = vertices[triangle.v[0]].p[0] + vertices[triangle.v[1]].p[0] + vertices[triangle.v[2]].p[0];
-		float yAxisValue = vertices[triangle.v[0]].p[1] + vertices[triangle.v[1]].p[1] + vertices[triangle.v[2]].p[1];
-		float zAxisValue = vertices[triangle.v[0]].p[2] + vertices[triangle.v[1]].p[2] + vertices[triangle.v[2]].p[2];
-		xAxisSum += xAxisValue * xAxisValue;
-		yAxisSum += yAxisValue * yAxisValue;
-		zAxisSum += zAxisValue * zAxisValue;
-		//        min = std::min({min, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
-		//        max = std::max({max, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
 
-	}
-
-	if (xAxisSum > std::max(yAxisSum, zAxisSum)) {
+	if (dimensions[0] > std::max(dimensions[1], dimensions[2])) {
 		axis = 0;
-	} else if (yAxisSum > std::max(xAxisSum, zAxisSum)) {
+	} else if (dimensions[1] > std::max(dimensions[0], dimensions[2])) {
 		axis = 1;
 	} else {
 		axis = 2;
 	}
 
 	float sum = 0;
-//    float min = std::numeric_limits<float>::max();
-//    float max = std::numeric_limits<float>::min();
 	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
 		Triangle triangle = *it;
 
 		sum += vertices[triangle.v[0]].p[axis] + vertices[triangle.v[1]].p[axis] + vertices[triangle.v[2]].p[axis];
-//        min = std::min({min, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
-//        max = std::max({max, vertices[triangle.v[0]].p[axis], vertices[triangle.v[1]].p[axis], vertices[triangle.v[2]].p[axis]});
 
 	}
 	float splitPoint = sum / (triangles.size() * 3);
-//	float splitPoint = (max + min) / 2;
 
 	std::vector<Triangle> firstBox;
 	std::vector<Triangle> secondBox;
