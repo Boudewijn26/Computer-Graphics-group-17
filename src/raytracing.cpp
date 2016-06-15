@@ -51,18 +51,41 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	return trace(origin, dest, 0);
 }
 
-Vec3Df trace(const Vec3Df & origin, const Vec3Df & dest)
-{
+Vec3Df trace(const Vec3Df & origin, const Vec3Df & dest, int level) {
     printf("begin");
     for(int i=0; i<MyMesh.triangles.size(); ++i)
         {
             Triangle triangle = MyMesh.triangles[i];
-            if(calculateHit(origin, dest, triangle))
-                printf("calculateHit: true");
+            if(calculateHit(origin, dest, triangle)) {
+                Vec3Df hit = intersectionPoint(origin, dest, triangle);
+                return shade(level, hit);
+            }
         }
+        return Vec3Df(0,0,0);
+}
+
+Vec3Df shade(int level, Vec3Df hit) {
+    Vec3Df refl;
+    Vec3Df refr;
+    Vec3Df direct;
+    for(int i=0; i<MyLightPositions.size(); i++){
+        direct = Vec3Df(0,0,0);/*Compute direct light*/
+    }
+    if(level<2) // && reflects
+    {
+        //calculate reflection vector
+       refl = trace(hit, Vec3Df(0,0,0)/*reflection*/, level +1);
+    }
+
+    if(level<2) // && refracts
+    {
+        //calculate refraction vector
+       refr = trace(hit, Vec3Df(0,0,0)/*refraction*/, level+1);
+    }
+    return refl*1/*Strenghth or something*/ +refr*1/*transmission*/ +direct;
 }
 
 bool calculateHit(const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle)
@@ -72,6 +95,37 @@ bool calculateHit(const Vec3Df & origin, const Vec3Df & dest, const Triangle & t
     Vec3Df v2 = MyMesh.vertices[triangle.v[2]].p;
 	return isTriangleHit(origin, dest, v0, v1, v2);
 
+}
+
+Vec3Df intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle) {
+	// Based on Moller-Trumbore intersection algorithm
+	Vec3Df v0 = MyMesh.vertices[triangle.v[0]].p;
+    Vec3Df v1 = MyMesh.vertices[triangle.v[1]].p;
+    Vec3Df v2 = MyMesh.vertices[triangle.v[2]].p;
+
+	Vec3Df e0 = v1 - v0;
+	Vec3Df e1 = v2 - v0;
+
+	Vec3Df direction = dest - origin;
+	direction.normalize();
+
+	Vec3Df p = Vec3Df::crossProduct(direction, e1);
+
+	float det = Vec3Df::dotProduct(e0, p);
+
+	float invDet = 1.f / det;
+
+	Vec3Df t = origin - v0;
+
+	float u = Vec3Df::dotProduct(t, p) * invDet;
+
+	Vec3Df q = Vec3Df::crossProduct(t, e0);
+
+	float v = Vec3Df::dotProduct(direction, q) * invDet;
+
+	float a = Vec3Df::dotProduct(e1, q) * invDet;
+
+	return Vec3Df(v0 +  q*v1 + u*v2);
 }
 
 bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2) {// compute plane's normal
