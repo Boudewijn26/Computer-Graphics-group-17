@@ -76,6 +76,9 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 				intersection.distance = distance;
 				intersection.index = i;
 				intersection.intersect = intersect;
+				intersection.normal = 
+					Vec3Df::crossProduct(MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p,
+										MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[0]].p);;
 			}
         }
     }

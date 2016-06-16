@@ -1,0 +1,264 @@
+newmtl MAT_BookBinding02SG
+illum 4
+Kd 0.46 0.34 0.25
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl MAT_BookBinding03SG
+illum 4
+Kd 0.35 0.46 0.33
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl MAT_BookBinding04SG
+illum 4
+Kd 0.80 0.76 0.69
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl MAT_BookBinding05SG
+illum 4
+Kd 0.20 0.10 0.20
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl initialShadingGroup
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl lambert2SG
+illum 4
+Kd 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl liquidSG
+illum 4
+Kd 0.50 0.85 0.02
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE1SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE2SG
+illum 4
+Kd 0.40 0.21 0.12
+Ka 0.00 0.00 0.00
+Tf 0.93 0.96 0.98
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE3SG
+illum 4
+Kd 0.56 0.04 0.04
+Ka 0.00 0.00 0.00
+Tf 0.54 0.92 0.98
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE4SG
+illum 4
+Kd 0.04 0.39 0.56
+Ka 0.00 0.00 0.00
+Tf 0.97 0.69 0.55
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE5SG
+illum 4
+Kd 0.19 0.13 0.04
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE7SG
+illum 4
+Kd 0.50 0.85 0.02
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE9SG
+illum 4
+Kd 0.50 0.48 0.40
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE10SG
+illum 4
+Kd 0.74 0.74 0.74
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE11SG
+illum 4
+Kd 0.93 0.77 0.73
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE12SG
+illum 4
+Kd 0.28 0.44 0.58
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE13SG
+illum 4
+Kd 0.80 0.04 0.06
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE14SG
+illum 4
+Kd 0.94 0.94 0.94
+Ka 0.00 0.00 0.00
+Tf 0.19 0.19 0.19
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE15SG
+illum 4
+Kd 0.18 0.18 0.18
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE16SG
+illum 4
+Kd 0.87 0.87 0.87
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE17SG
+illum 4
+Kd 0.31 0.25 0.19
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE18SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE19SG
+illum 4
+Kd 0.22 0.17 0.14
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE20SG
+illum 4
+Kd 0.89 0.20 0.20
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE21SG
+illum 4
+Kd 0.93 0.97 0.70
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE22SG
+illum 4
+Kd 0.23 0.23 0.23
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE24SG
+illum 4
+Kd 0.86 0.84 0.76
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE25SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE26SG
+illum 4
+Kd 0.17 0.17 0.17
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE27SG
+illum 4
+Kd 0.89 0.26 0.26
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE28SG
+illum 4
+Kd 0.91 0.91 0.91
+Ka 0.00 0.00 0.00
+Tf 0.86 0.86 0.86
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE29SG
+illum 4
+Kd 0.29 0.29 0.29
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE30SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE31SG
+illum 4
+Kd 0.91 0.80 0.75
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE32SG
+illum 4
+Kd 0.19 0.19 0.19
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl phongE33SG
+illum 4
+Kd 0.93 0.93 0.93
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl tubes00SG
+illum 4
+Kd 0.59 0.59 0.59
+Ka 0.00 0.00 0.00
+Tf 0.09 0.09 0.09
+Ni 1.00
+Ks 0.50 0.50 0.50
