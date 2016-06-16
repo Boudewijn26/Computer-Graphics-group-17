@@ -1,0 +1,58 @@
+Aanwezig:
+Alessandro, Vincent, Jeroen, Boudewijn, Martijn, Jurriaan, 
+
+Agenda:
+1. Opening
+2. Vaststellen agenda
+3. Wat is er gedaan
+4. Weekplanning
+	- Wat wanneer af
+	- Taakverdeling deze week
+5. Wvttk
+6. Afsluiting
+
+1. Opening:
+Iedereen is er behalve tim.
+
+2. Vaststellen agenda:
+
+
+3. Wat is er gedaan:
+Intersection berekeningen - Alessandro
+Recursive raytracing - Martijn
+Komt van een ander groepje - Jeroen
+Aan boundingbox gewerkt - Jurriaan
+Recursive raytracing - Vincent
+
+
+4. Weekplanning:
+ - Ray intersection with planes, and triangles
+ - Computation of the shading at the first impact point
+ - Recursive raytracing to simulate specular materials (using reflection)
+ - An option to move the light sources in the scene
+ - An interactive display in OpenGL of the 3D scene and a debug ray tracing; a ray from a chosen pixel
+   into the OpenGL scene, showing the interaction with the surfaces
+ - A (simple) spatial acceleration structure (see below for details)
+ - Own-built scene(s) and screen shots for competition (up to 1.5 points can be won for the project)
+
+ - A possibility to loop over the rays via the keyboard, triggering a ray highlighting (e.g., change of
+   color) and a command line output of the selected rays properties.
+ - Interpolated normals and properties for smooth objects
+ - A more complex scene hierarchy
+ - A selection of triangles for which to modify attributes on the fly
+ - Ray intersection with spheres
+ - Refraction and transparent objects
+ - Design your own 3D scene in Blender
+ - Create interesting test cases
+
+Samenwerking in groepjes van 2:
+- Alessandro  & Jurriaan: Shading 
+- Martijn & Vincent: Recursive raytracing to simulate specular materials (using reflection)
+- Boudewijn & Jeroen: Interactive display & misschien spatial acceleration structure
+
+5: Wvttk:
+
+6. Afsluiting:
+TODO bij tijd over: Zon/maan fixen - jurriaan
+TODO Refraction/reflection heeft overgang in realiteit/om het realistischer eruit te laten zien - jeroen
+
