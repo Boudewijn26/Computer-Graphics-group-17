@@ -43,7 +43,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 
 	BoundingBox main = BoundingBox(MyMesh);
-//	boxes = main.split(1000);
+	boxes = main.split(1000);
 }
 
 //return the color of your pixel.
