@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 	int mainWindow = glutCreateWindow(argv[0]);
 
 	glutCreateSubWindow(mainWindow, 0, 0, WindowSize_X, WindowSize_Y);
-	
+
 	//int mainWindow = glutCreateWindow(argv[0]);
 	//glutCreateSubWindow(mainWindow, WindowSize_X, 0, WindowSize_X, WindowSize_Y / 2);
 
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
 	glutReshapeFunc(debugReshape);
 	glutDisplayFunc(debugDisplay);
 
-	
+
 	glGenTextures(1, &textureId);
 	glBindTexture(GL_TEXTURE_2D, textureId);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WindowSize_X, WindowSize_Y, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
@@ -190,7 +190,7 @@ void debugReshape(int w, int h) {
 	glLoadIdentity();
 
 	glOrtho (-1.1, 1.1, -1.1,1.1, -1000.0, 1000.0);
-	
+
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -264,6 +264,8 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X - 1, 0, &origin10, &dest10);
 		produceRay(WindowSize_X - 1, WindowSize_Y - 1, &origin11, &dest11);
 
+		float totalPixels = WindowSize_X*WindowSize_Y;
+
 		for (unsigned int y = 0; y < WindowSize_Y; ++y)
 			for (unsigned int x = 0; x < WindowSize_X; ++x)
 			{
@@ -287,7 +289,12 @@ void keyboard(unsigned char key, int x, int y)
 				texture[textureIndex + 1] = rgb[1];
 				texture[textureIndex + 2] = rgb[2];
 
-				
+
+				if (x % 1024 == 0)
+				{
+					float percentage = (((float)y*WindowSize_X + x) / totalPixels) *100;
+					cout << "Rendered percentage: " << percentage << "%" << endl;
+				}
 			}
 
 		glBindTexture(GL_TEXTURE_2D, textureId);
