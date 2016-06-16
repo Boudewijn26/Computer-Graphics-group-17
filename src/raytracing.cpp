@@ -14,7 +14,7 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-std::vector<BoundingBox> boxes;
+std::vector<Triangle> BoundingTriangles;
 
 void drawBox(BoundingBox box);
 
@@ -39,7 +39,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 
 	BoundingBox main = BoundingBox(MyMesh);
-	boxes = main.split(500);
+	std::vector<Triangle> BoundingTriangles = BoundingBox::getBoundingTriangles();
 }
 
 //return the color of your pixel.
@@ -53,6 +53,12 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
+    for(int i=0; i<BoundingTriangles.size(); ++i) {
+        Triangle triangle = BoundingTriangles[i];
+        if (!intersectionPoint(origin, dest, triangle, intersect)) {
+            return false;
+        }
+    }
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
         if (intersectionPoint(origin, dest, triangle, intersect)) {
@@ -65,7 +71,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
         }
     }
 	if (intersection.index == -1) return false;
-	
+
 	result = shade(intersection, level);
 
 	return true;
