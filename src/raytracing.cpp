@@ -44,7 +44,8 @@ void init()
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
-	MyLightPositions.push_back(MyCameraPosition);
+	Vec3Df sunVector = calculateSunVector();
+	MyLightPositions.push_back(sunVector);
 
 	BoundingBox main = BoundingBox(MyMesh);
 	boxes = main.split(500);
@@ -68,6 +69,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
             return false;
         }
     }*/
+	MyMesh.computeVertexNormals();
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
         if (intersectionPoint(origin, dest, triangle, intersect)) {
@@ -76,9 +78,10 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 				intersection.distance = distance;
 				intersection.index = i;
 				intersection.intersect = intersect;
-				intersection.normal = 
+				intersection.normal =
 					Vec3Df::crossProduct(MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p,
-										MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[0]].p);;
+										MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[0]].p);
+				intersection.normal.normalize();
 			}
         }
     }
@@ -92,10 +95,17 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 Vec3Df shade(Intersection intersection, int level) {
     Vec3Df refl = Vec3Df(0,0,0);
 	Vec3Df refr = Vec3Df(0,0,0);
-    Vec3Df direct;
+    Vec3Df directColor;
+	Vec3Df result = Vec3Df(0,0,0);
+
+	MyMesh.computeVertexNormals();
     for(int i=0; i<MyLightPositions.size(); i++){
 		unsigned int triMat = MyMesh.triangleMaterials.at(intersection.index);
-		direct = MyMesh.materials.at(triMat).Kd();
+		directColor = MyMesh.materials.at(triMat).Kd();
+		Vec3Df lightVec = (MyLightPositions[i] - intersection.intersect);
+		lightVec.normalize();
+
+		result += directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
     }
   /*  if(level<2) // && reflects
     {
@@ -108,7 +118,7 @@ Vec3Df shade(Intersection intersection, int level) {
         //calculate refraction vector
        refr = trace(hit, Vec3Df(0,0,0)refraction, level+1);
     } */
-    return direct;
+    return result;
 }
 
 bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle, Vec3Df& result) {

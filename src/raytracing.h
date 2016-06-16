@@ -31,6 +31,7 @@ struct Intersection {
 	float distance = FLT_MAX;
 	int index = -1;
 	Vec3Df intersect;
+	Vec3Df normal;
 };
 
 //your main function to rewrite

@@ -11,11 +11,7 @@
 #include <GL/glut.h>
 #endif
 
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
 #include "raytracing.h"
-#include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
 
