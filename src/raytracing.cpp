@@ -31,7 +31,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/cube.obj", true);
+    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -40,7 +40,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 
 	BoundingBox main = BoundingBox(MyMesh);
-	boxes = main.split(200);
+	boxes = main.split(2000);
 	printf("Calculated bounding box with %d boxes", boxes.size());
 }
 
@@ -55,17 +55,25 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
+	bool foundBox = false;
     for(int i=0; i<boxes.size(); ++i) {
+		if (foundBox) {
+			break;
+		}
         std::vector<Triangle> triangles = boxes[i].getBoundingTriangles();
         std::vector<Vec3Df> vertices = boxes[i].getVertices();
         for(int j=0; j<=triangles.size(); ++j){
-			if (j == triangles.size()) return false;
+			if (j == triangles.size()) break;
             if (intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
+				foundBox = true;
 				break;
             }
         }
 
     }
+	if (!foundBox) {
+		return false;
+	}
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
