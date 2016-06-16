@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "BoundingBox.h"
 #include "hsv.h"
+#include "float.h"
 
 //Welcome to your MAIN PROJECT...
 //THIS IS THE MOST relevant code for you!
@@ -26,9 +27,20 @@ void init();
 //it is defined elsewhere
 void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
+struct Intersection {
+	float distance = FLT_MAX;
+	int index = -1;
+	Vec3Df intersect;
+};
 
 //your main function to rewrite
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
+
+bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result);
+
+Vec3Df shade(Intersection intersection, int level);
+
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle, Vec3Df& result);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();
