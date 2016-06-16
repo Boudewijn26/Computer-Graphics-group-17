@@ -29,7 +29,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("models/cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -39,13 +39,6 @@ void init()
 
 	BoundingBox main = BoundingBox(MyMesh);
 	boxes = main.split(500);
-
-	Triangle testTriangle = Triangle(0, 0, 1, 1, 2, 2);
-	MyMesh.vertices[0] = Vec3Df(-1, -1, 0);
-	MyMesh.vertices[2] = Vec3Df(1, -1, 0);
-	MyMesh.vertices[1] = Vec3Df(0, 1, 0);
-
-	calculateHit(Vec3Df(0, 0, -1), Vec3Df(0, 0, 1), testTriangle);
 }
 
 //return the color of your pixel.
@@ -55,37 +48,48 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 }
 
 Vec3Df trace(const Vec3Df & origin, const Vec3Df & dest, int level) {
-    printf("begin");
+	float distance = FLT_MAX;
+	int index = -1;
+	Vec3Df hit;
     for(int i=0; i<MyMesh.triangles.size(); ++i)
-        {
-            Triangle triangle = MyMesh.triangles[i];
-            if(calculateHit(origin, dest, triangle)) {
-                Vec3Df hit = intersectionPoint(origin, dest, triangle);
-                return shade(level, hit);
-            }
+    {
+        Triangle triangle = MyMesh.triangles[i];
+        if(calculateHit(origin, dest, triangle)) {
+            Vec3Df temphit = intersectionPoint(origin, dest, triangle);
+			float dist = (temphit - origin).getLength();
+			if (dist < distance) {
+				distance = dist;
+				index = i;
+				hit = temphit;
+			}
         }
-        return Vec3Df(0,0,0);
+    }
+	if (index >= 0) {
+		return shade(level, hit, index);
+	}
+    return Vec3Df(0,0,0);
 }
 
-Vec3Df shade(int level, Vec3Df hit) {
-    Vec3Df refl;
-    Vec3Df refr;
+Vec3Df shade(int level, Vec3Df hit, int j) {
+    Vec3Df refl = Vec3Df(0, 0, 0);
+	Vec3Df refr = Vec3Df(0,0,0);
     Vec3Df direct;
     for(int i=0; i<MyLightPositions.size(); i++){
-        direct = Vec3Df(0,0,0);/*Compute direct light*/
+		unsigned int triMat = MyMesh.triangleMaterials.at(j);
+		direct = MyMesh.materials.at(triMat).Kd();
     }
-    if(level<2) // && reflects
+  /*  if(level<2) // && reflects
     {
         //calculate reflection vector
-       refl = trace(hit, Vec3Df(0,0,0)/*reflection*/, level +1);
+       refl = trace(hit, Vec3Df(0,0,0)reflection, level +1);
     }
 
-    if(level<2) // && refracts
+    else if(level<2) // && refracts
     {
         //calculate refraction vector
-       refr = trace(hit, Vec3Df(0,0,0)/*refraction*/, level+1);
-    }
-    return refl*1/*Strenghth or something*/ +refr*1/*transmission*/ +direct;
+       refr = trace(hit, Vec3Df(0,0,0)refraction, level+1);
+    } */
+    return direct;
 }
 
 bool calculateHit(const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle)
@@ -125,7 +129,7 @@ Vec3Df intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangl
 
 	float a = Vec3Df::dotProduct(e1, q) * invDet;
 
-	return Vec3Df(v0 +  q*v1 + u*v2);
+	return Vec3Df(v0 + v*v1 + u*v2);
 }
 
 bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2) {// compute plane's normal
