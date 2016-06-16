@@ -194,13 +194,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	testRayDestination=rayDestination;
 	
 	// do here, whatever you want with the keyboard input t.
-	if (t == 'i') {
+	if (t == 'w') {
 		pitchAngle += ANGLE_STEP;
-	} else if (t == 'k') {
+	} else if (t == 's') {
 		pitchAngle -= ANGLE_STEP;
-	} else if (t == 'j') {
+	} else if (t == 'a') {
 		yawAngle += ANGLE_STEP;
-	} else if (t == 'l') {
+	} else if (t == 'd') {
 		yawAngle -= ANGLE_STEP;
 	}
 	//...
