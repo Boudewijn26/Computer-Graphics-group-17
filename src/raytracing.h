@@ -1,6 +1,7 @@
 #ifndef RAYTRACING_Hjdslkjfadjfasljf
 #define RAYTRACING_Hjdslkjfadjfasljf
 #include <vector>
+#include <cfloat>
 #include "mesh.h"
 #include "BoundingBox.h"
 
