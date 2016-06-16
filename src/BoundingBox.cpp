@@ -105,8 +105,8 @@ std::vector<Vec3Df> BoundingBox::getVertices() const {
 	return vertices;
 }
 
-std::vector<int> BoundingBox::getDrawingIndices() const {
-	std::vector<int> indices;
+std::vector<unsigned int> BoundingBox::getDrawingIndices() const {
+	std::vector<unsigned int> indices;
 	indices.push_back(0);
 	indices.push_back(1);
 	indices.push_back(2);
@@ -181,3 +181,19 @@ std::vector<BoundingBox> BoundingBox::split(int threshold) {
 	return boxes;
 }
 
+std::vector<Triangle> BoundingBox::getBoundingTriangles() {
+	std::vector<unsigned int> drawingIndices = getDrawingIndices();
+	std::vector<Triangle> triangles;
+	for (int i = 0; i < drawingIndices.size(); i += 3) {
+		triangles.push_back(Triangle(
+				drawingIndices[i],
+				0,
+				drawingIndices[i + 1],
+				0,
+				drawingIndices[i + 2],
+				0
+		));
+	}
+
+	return triangles;
+}

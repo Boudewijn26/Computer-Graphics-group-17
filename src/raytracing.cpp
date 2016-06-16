@@ -4,6 +4,7 @@
 #endif
 #include <GL/glut.h>
 #include <GL/gl.h>
+#include <cfloat>
 #include "raytracing.h"
 
 
@@ -167,8 +168,8 @@ void drawBox(BoundingBox box) {
 	glBegin(GL_TRIANGLES);
 	glColor3f(1, 1, 1);
 	std::vector<Vec3Df> boxVertices = box.getVertices();
-	std::vector<int> boxIndices = box.getDrawingIndices();
-	for(std::vector<int>::iterator it = boxIndices.begin(); it != boxIndices.end(); ++it) {
+	std::vector<unsigned int> boxIndices = box.getDrawingIndices();
+	for(std::vector<unsigned int>::iterator it = boxIndices.begin(); it != boxIndices.end(); ++it) {
 		int index = *it;
 		Vec3Df vertex = boxVertices[index];
 		glVertex3f(vertex[0], vertex[1], vertex[2]);

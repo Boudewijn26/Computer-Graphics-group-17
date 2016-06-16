@@ -11,7 +11,8 @@ public:
 	BoundingBox(const std::vector<Vertex>& vertices, std::vector<Triangle> triangles);
 
 	std::vector<Vec3Df> getVertices() const;
-	std::vector<int> getDrawingIndices() const;
+	std::vector<unsigned int> getDrawingIndices() const;
+	std::vector<Triangle> getBoundingTriangles();
 
 	std::vector<BoundingBox> split(int threshold);
 
