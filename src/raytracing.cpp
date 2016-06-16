@@ -15,7 +15,7 @@ Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
 std::vector<BoundingBox> boxes;
-Vector<Vec3Df> meshPoints;
+std::vector<Vec3Df> meshPoints;
 
 void drawBox(BoundingBox box);
 
@@ -41,6 +41,7 @@ void init()
 
 	BoundingBox main = BoundingBox(MyMesh);
 	boxes = main.split(200);
+	printf("Calculated bounding box with %d boxes", boxes.size());
 }
 
 //return the color of your pixel.
@@ -57,11 +58,13 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
     for(int i=0; i<boxes.size(); ++i) {
         std::vector<Triangle> triangles = boxes[i].getBoundingTriangles();
         std::vector<Vec3Df> vertices = boxes[i].getVertices();
-        for(int j=0; j<triangles.size(); ++j){
-            if (!intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
-                return false;
+        for(int j=0; j<=triangles.size(); ++j){
+			if (j == triangles.size()) return false;
+            if (intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
+				break;
             }
         }
+
     }
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
@@ -103,15 +106,15 @@ Vec3Df shade(Intersection intersection, int level) {
     return direct;
 }
 
-Vector<Vec3Df> getVerticePoints(const Vector<Vertex> &vertices) {
-	Vector<Vec3Df> points;
+std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices) {
+	std::vector<Vec3Df> points;
 	for(int i=0; i<vertices.size(); ++i){
         points.push_back(vertices[i].p);
 	}
 	return points;
 }
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
 	Vec3Df q = dest - origin;
 	Vec3Df a = vertices[triangle.v[0]] - origin;
 	Vec3Df b = vertices[triangle.v[1]] - origin;
