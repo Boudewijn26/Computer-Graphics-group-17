@@ -160,6 +160,7 @@ std::vector<unsigned int> BoundingBox::getDrawingIndices() const {
 void BoundingBox::split(std::vector<BoundingBox>& boxes, int threshold) {
 	if (triangles.size() < threshold) {
 		boxes.push_back(BoundingBox(vertices, triangles));
+		return;
 	}
 	std::pair<BoundingBox, BoundingBox> pair = doSplit();
 	if (pair.first.triangles.size() < threshold) {

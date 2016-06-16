@@ -18,7 +18,7 @@ float pitchAngle = 0;
 float yawAngle = 0;
 
 std::vector<BoundingBox> boxes;
-std::vector<Triangle> boundingTriangles;
+std::vector<Vec3Df> meshPoints;
 
 void drawBox(BoundingBox box);
 
@@ -38,9 +38,9 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/cube.obj", true);
+    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
-
+    meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
@@ -48,8 +48,8 @@ void init()
 	MyLightPositions.push_back(sunVector);
 
 	BoundingBox main = BoundingBox(MyMesh);
-	boxes = main.split(500);
-	boundingTriangles = main.getBoundingTriangles();
+	boxes = main.split(2000);
+	printf("Calculated bounding box with %d boxes\n", boxes.size());
 }
 
 //return the color of your pixel.
@@ -63,16 +63,28 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
-    /*for(int i=0; i<boundingTriangles.size(); ++i) {
-        Triangle triangle = boundingTriangles[i];
-        if (!intersectionPoint(origin, dest, triangle, intersect)) {
-            return false;
+	bool foundBox = false;
+    for(int i=0; i<boxes.size(); ++i) {
+		if (foundBox) {
+			break;
+		}
+        std::vector<Triangle> triangles = boxes[i].getBoundingTriangles();
+        std::vector<Vec3Df> vertices = boxes[i].getVertices();
+        for(int j=0; j<=triangles.size(); ++j){
+			if (j == triangles.size()) break;
+            if (intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
+				foundBox = true;
+				break;
+            }
         }
-    }*/
-	MyMesh.computeVertexNormals();
+
+    }
+	if (!foundBox) {
+		return false;
+	}
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
-        if (intersectionPoint(origin, dest, triangle, intersect)) {
+        if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
@@ -121,11 +133,19 @@ Vec3Df shade(Intersection intersection, int level) {
     return result;
 }
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle, Vec3Df& result) {
+std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices) {
+	std::vector<Vec3Df> points;
+	for(int i=0; i<vertices.size(); ++i){
+        points.push_back(vertices[i].p);
+	}
+	return points;
+}
+
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
 	Vec3Df q = dest - origin;
-	Vec3Df a = MyMesh.vertices[triangle.v[0]].p - origin;
-	Vec3Df b = MyMesh.vertices[triangle.v[1]].p - origin;
-	Vec3Df c = MyMesh.vertices[triangle.v[2]].p - origin;
+	Vec3Df a = vertices[triangle.v[0]] - origin;
+	Vec3Df b = vertices[triangle.v[1]] - origin;
+	Vec3Df c = vertices[triangle.v[2]] - origin;
 
 	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
 	if (u < FLT_EPSILON) return false;
