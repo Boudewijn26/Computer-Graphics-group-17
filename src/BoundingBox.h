@@ -3,6 +3,9 @@
 #include <vector>
 #include "mesh.h"
 #include <utility>
+#include "BoxesTree.h"
+
+class BoxesTree;
 
 class BoundingBox {
 public:
@@ -15,6 +18,9 @@ public:
 	std::vector<Triangle> getBoundingTriangles();
 
 	std::vector<BoundingBox> split(int threshold);
+	BoxesTree* splitToTree(int threshold);
+	BoundingBox& operator =(const BoundingBox& other);
+	bool doesIntersect(Vec3Df origin, Vec3Df dest);
 
 private:
 	void init(std::vector<Vertex> vertices, std::vector<Triangle> triangles);
@@ -26,4 +32,5 @@ private:
 	Vec3Df origin;
 
 	Vec3Df dimensions;
+
 };

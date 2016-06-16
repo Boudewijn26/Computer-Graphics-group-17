@@ -1,6 +1,8 @@
 #include "BoundingBox.h"
+#include "BoxesTree.h"
 #include <limits>
 #include <algorithm>
+#include "raytracing.h"
 
 BoundingBox::BoundingBox() : vertices(std::vector<Vertex>()) {
 	origin = Vec3Df(0, 0, 0);
@@ -198,3 +200,37 @@ std::vector<Triangle> BoundingBox::getBoundingTriangles() {
 
 	return triangles;
 }
+
+BoxesTree* BoundingBox::splitToTree(int threshold) {
+	if (triangles.size() < threshold) {
+		BoxesEndpoint* result = new BoxesEndpoint(this);
+		return result;
+	} else {
+		std::pair<BoundingBox, BoundingBox> pair = doSplit();
+		BoxesTree* left = pair.first.splitToTree(threshold);
+		BoxesTree* right = pair.second.splitToTree(threshold);
+		BoxesNode* node = new BoxesNode(this, left, right);
+		return node;
+	}
+}
+
+bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
+	std::vector<Triangle> triangles = this->getBoundingTriangles();
+	std::vector<Vec3Df> vertices = this->getVertices();
+	for(int j = 0; j < triangles.size(); j++){
+		Vec3Df hit;
+		if (intersectionPoint(origin, dest, vertices, triangles[j], hit)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+BoundingBox &BoundingBox::operator=(const BoundingBox &other) {
+	BoundingBox box = BoundingBox(
+			other.vertices,
+			other.triangles
+	);
+	return box;
+}
+

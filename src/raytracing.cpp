@@ -2,6 +2,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
 #include "raytracing.h"
@@ -15,6 +16,9 @@ Vec3Df testRayDestination;
 
 float pitchAngle = 0;
 float yawAngle = 0;
+
+BoundingBox box = BoundingBox();
+BoxesTree* tree;
 
 std::vector<BoundingBox> boxes;
 std::vector<Vec3Df> meshPoints;
@@ -47,6 +51,7 @@ void init()
 
 	BoundingBox main = BoundingBox(MyMesh);
 	boxes = main.split(2000);
+	tree = main.splitToTree(5000);
 	printf("Calculated bounding box with %d boxes", boxes.size());
 }
 
