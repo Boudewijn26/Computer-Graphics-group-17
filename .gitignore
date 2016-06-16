@@ -7,6 +7,7 @@ packages/
 
 *.db
 *.opendb
+*.user
 *.out
 *.ppm
 
