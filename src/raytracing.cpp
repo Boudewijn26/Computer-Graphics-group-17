@@ -14,7 +14,7 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-std::vector<Triangle> BoundingTriangles;
+std::vector<BoundingBox> boxes;
 
 void drawBox(BoundingBox box);
 
@@ -39,7 +39,7 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 
 	BoundingBox main = BoundingBox(MyMesh);
-	std::vector<Triangle> BoundingTriangles = BoundingBox::getBoundingTriangles();
+	boxes = main.split(200);
 }
 
 //return the color of your pixel.
@@ -53,15 +53,18 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
-    for(int i=0; i<BoundingTriangles.size(); ++i) {
-        Triangle triangle = BoundingTriangles[i];
-        if (!intersectionPoint(origin, dest, triangle, intersect)) {
-            return false;
+    for(int i=0; i<boxes.size(); ++i) {
+        std::vector<Triangle> triangles = boxes[i].getBoundingTriangles();
+        std::vector<Vec3Df> vertices = boxes[i].getVertices();
+        for(int j=0; j<triangles.size(); ++j){
+            if (!intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
+                return false;
+            }
         }
     }
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
-        if (intersectionPoint(origin, dest, triangle, intersect)) {
+        if (intersectionPoint(origin, dest, MyMesh.vertices, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
@@ -99,11 +102,11 @@ Vec3Df shade(Intersection intersection, int level) {
     return direct;
 }
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle, Vec3Df& result) {
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const &vertices, const Triangle &triangle, Vec3Df& result) {
 	Vec3Df q = dest - origin;
-	Vec3Df a = MyMesh.vertices[triangle.v[0]].p - origin;
-	Vec3Df b = MyMesh.vertices[triangle.v[1]].p - origin;
-	Vec3Df c = MyMesh.vertices[triangle.v[2]].p - origin;
+	Vec3Df a = vertices[triangle.v[0]].p - origin;
+	Vec3Df b = vertices[triangle.v[1]].p - origin;
+	Vec3Df c = vertices[triangle.v[2]].p - origin;
 
 	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
 	if (u < FLT_EPSILON) return false;
