@@ -2,9 +2,11 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "BoxesTree.h"
+#include "BoundingBox.h"
 #include <GL/glut.h>
 #include <float.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "raytracing.h"
 
 
