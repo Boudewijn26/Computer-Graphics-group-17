@@ -15,6 +15,7 @@ Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
 std::vector<BoundingBox> boxes;
+Vector<Vec3Df> meshPoints;
 
 void drawBox(BoundingBox box);
 
@@ -32,7 +33,7 @@ void init()
 	//otherwise the application will not load properly
     MyMesh.loadMesh("models/cube.obj", true);
 	MyMesh.computeVertexNormals();
-
+    meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
@@ -64,7 +65,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
     }
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
-        if (intersectionPoint(origin, dest, MyMesh.vertices, triangle, intersect)) {
+        if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
@@ -102,11 +103,19 @@ Vec3Df shade(Intersection intersection, int level) {
     return direct;
 }
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const &vertices, const Triangle &triangle, Vec3Df& result) {
+Vector<Vec3Df> getVerticePoints(const Vector<Vertex> &vertices) {
+	Vector<Vec3Df> points;
+	for(int i=0; i<vertices.size(); ++i){
+        points.push_back(vertices[i].p);
+	}
+	return points;
+}
+
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
 	Vec3Df q = dest - origin;
-	Vec3Df a = vertices[triangle.v[0]].p - origin;
-	Vec3Df b = vertices[triangle.v[1]].p - origin;
-	Vec3Df c = vertices[triangle.v[2]].p - origin;
+	Vec3Df a = vertices[triangle.v[0]] - origin;
+	Vec3Df b = vertices[triangle.v[1]] - origin;
+	Vec3Df c = vertices[triangle.v[2]] - origin;
 
 	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
 	if (u < FLT_EPSILON) return false;
