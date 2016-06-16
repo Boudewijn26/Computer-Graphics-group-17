@@ -31,7 +31,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
 
 Vec3Df trace(const Vec3Df & origin, const Vec3Df & dest, int level);
 
-Vec3Df shade(int level, Vec3Df hit);
+Vec3Df shade(int level, Vec3Df hit, int i);
 
 Vec3Df intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle);
 

@@ -236,7 +236,6 @@ void keyboard(unsigned char key, int x, int y)
 			}
 
 		result.writeImage("result.ppm");
-		trace(origin, dest);
 		break;
 	}
 	case 27:     // touche ESC
