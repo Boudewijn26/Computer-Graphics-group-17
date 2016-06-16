@@ -17,6 +17,8 @@ std::vector<BoundingBox> boxes;
 
 void drawBox(BoundingBox box);
 
+bool boundingBoxes = false;
+
 //use this function for any preprocessing of the mesh.
 void init()
 {
@@ -45,8 +47,6 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
-
-
 void yourDebugDraw()
 {
 	//draw open gl debug stuff
@@ -54,14 +54,14 @@ void yourDebugDraw()
 
 	//let's draw the mesh
 	MyMesh.draw();
-	
+
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
 	glDisable(GL_LIGHTING);
-	glColor3f(1,1,1);
+	glColor3f(1, 1, 1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
+	for (int i = 0; i < MyLightPositions.size(); ++i)
 		glVertex3fv(MyLightPositions[i].pointer());
 	glEnd();
 	glPopAttrib();//restore all GL attributes
@@ -70,9 +70,11 @@ void yourDebugDraw()
 	//the color to white, it will be reset to the previous 
 	//state after the pop.
 
-	for (std::vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
-		BoundingBox box = *it;
-		drawBox(box);
+	if (boundingBoxes) {
+		for (std::vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
+			BoundingBox box = *it;
+			drawBox(box);
+		}
 	}
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -140,7 +142,9 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	testRayDestination=rayDestination;
 	
 	// do here, whatever you want with the keyboard input t.
-	
+	if (t == 'b') {
+		boundingBoxes = !boundingBoxes;
+	}
 	//...
 	
 	

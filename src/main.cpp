@@ -32,6 +32,9 @@ Vec3Df MyCameraPosition;
 //but following the camera instead.
 std::vector<Vec3Df> MyLightPositions;
 
+unsigned char* texture = new unsigned char[WindowSize_X * WindowSize_Y * 3];
+GLuint textureId;
+
 //Main mesh
 Mesh MyMesh;
 
@@ -57,11 +60,17 @@ void display(void);
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
 
+void debugDisplay(void);
+void debugReshape(int w, int h);
+
 /**
  * Main Programme
  */
 int main(int argc, char** argv)
 {
+	for (int i = 0; i < WindowSize_X * WindowSize_Y * 3; i++) {
+		texture[i] = 0;
+	}
 	glutInit(&argc, argv);
 
 	//framebuffer setup
@@ -69,8 +78,13 @@ int main(int argc, char** argv)
 
 	// positioning and size of window
 	glutInitWindowPosition(200, 100);
-	glutInitWindowSize(WindowSize_X, WindowSize_Y);
-	glutCreateWindow(argv[0]);
+	glutInitWindowSize(WindowSize_X * 2, WindowSize_Y);
+	int mainWindow = glutCreateWindow(argv[0]);
+
+	glutCreateSubWindow(mainWindow, 0, 0, WindowSize_X, WindowSize_Y);
+	
+	//int mainWindow = glutCreateWindow(argv[0]);
+	//glutCreateSubWindow(mainWindow, WindowSize_X, 0, WindowSize_X, WindowSize_Y / 2);
 
 	//initialize viewpoint
 	glMatrixMode(GL_MODELVIEW);
@@ -114,6 +128,16 @@ int main(int argc, char** argv)
 	glutMotionFunc(tbMotionFunc);  // uses mouse
 	glutIdleFunc(animate);
 
+	glutCreateSubWindow(mainWindow, WindowSize_X, 0, WindowSize_X, WindowSize_Y);
+
+	glutReshapeFunc(debugReshape);
+	glutDisplayFunc(debugDisplay);
+
+	
+	glGenTextures(1, &textureId);
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WindowSize_X, WindowSize_Y, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+
 	init();
 
 	//main loop for glut... this just runs your application
@@ -143,6 +167,31 @@ void display(void)
 
 	glutSwapBuffers();//glut internal switch
 	glPopAttrib();//return to old GL state
+}
+
+void debugDisplay(void) {
+	glBindTexture(GL_TEXTURE_2D, textureId);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0, 0);
+	glVertex3f(-1, -1, 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(1, -1, 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(1, 1, 0);
+	glTexCoord2f(0, 1);
+	glVertex3f(-1, 1, 0);
+	glEnd();
+
+}
+
+void debugReshape(int w, int h) {
+	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glOrtho (-1.1, 1.1, -1.1,1.1, -1000.0, 1000.0);
+	
+	glMatrixMode(GL_MODELVIEW);
 }
 
 //Window changes size
@@ -233,8 +282,16 @@ void keyboard(unsigned char key, int x, int y)
 
 				//store the result in an image
 				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				int textureIndex = WindowSize_Y * y + x;
+				texture[textureIndex] = rgb[0];
+				texture[textureIndex + 1] = rgb[1];
+				texture[textureIndex + 2] = rgb[2];
+
+				
 			}
 
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WindowSize_X, WindowSize_Y, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
 		result.writeImage("result.ppm");
 		break;
 	}
