@@ -1,12 +1,15 @@
 # Visual Studio
 Debug/
+Release/
 src/Debug/
+src/Release/
 lib/
 packages/
 .vs/
 
 *.db
 *.opendb
+*.user
 *.out
 *.ppm
 

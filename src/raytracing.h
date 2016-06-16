@@ -25,17 +25,20 @@ void init();
 //it is defined elsewhere
 void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
+struct Intersection {
+	float distance = FLT_MAX;
+	int index = -1;
+	Vec3Df intersect;
+};
 
 //your main function to rewrite
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
 
-Vec3Df trace(const Vec3Df & origin, const Vec3Df & dest, int level);
+bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result);
 
-Vec3Df shade(int level, Vec3Df hit, int i);
+Vec3Df shade(Intersection intersection, int level);
 
-Vec3Df intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle);
-
-bool calculateHit(const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle);
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle, Vec3Df& result);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();

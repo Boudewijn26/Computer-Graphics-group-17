@@ -44,38 +44,38 @@ void init()
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	return trace(origin, dest, 0);
+	Vec3Df result;
+	if (trace(origin, dest, 0, result)) return result;
+	return Vec3Df(0, 0, 0);
 }
 
-Vec3Df trace(const Vec3Df & origin, const Vec3Df & dest, int level) {
-	float distance = FLT_MAX;
-	int index = -1;
-	Vec3Df hit;
-    for(int i=0; i<MyMesh.triangles.size(); ++i)
-    {
+bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
+	Intersection intersection;
+	Vec3Df intersect;
+    for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
-        if(calculateHit(origin, dest, triangle)) {
-            Vec3Df temphit = intersectionPoint(origin, dest, triangle);
-			float dist = (temphit - origin).getLength();
-			if (dist < distance) {
-				distance = dist;
-				index = i;
-				hit = temphit;
+        if (intersectionPoint(origin, dest, triangle, intersect)) {
+			float distance = (intersect - origin).getLength();
+			if (intersection.distance > distance) {
+				intersection.distance = distance;
+				intersection.index = i;
+				intersection.intersect = intersect;
 			}
         }
     }
-	if (index >= 0) {
-		return shade(level, hit, index);
-	}
-    return Vec3Df(0,0,0);
+	if (intersection.index == -1) return false;
+	
+	result = shade(intersection, level);
+
+	return true;
 }
 
-Vec3Df shade(int level, Vec3Df hit, int j) {
-    Vec3Df refl = Vec3Df(0, 0, 0);
+Vec3Df shade(Intersection intersection, int level) {
+    Vec3Df refl = Vec3Df(0,0,0);
 	Vec3Df refr = Vec3Df(0,0,0);
     Vec3Df direct;
     for(int i=0; i<MyLightPositions.size(); i++){
-		unsigned int triMat = MyMesh.triangleMaterials.at(j);
+		unsigned int triMat = MyMesh.triangleMaterials.at(intersection.index);
 		direct = MyMesh.materials.at(triMat).Kd();
     }
   /*  if(level<2) // && reflects
@@ -92,82 +92,24 @@ Vec3Df shade(int level, Vec3Df hit, int j) {
     return direct;
 }
 
-bool calculateHit(const Vec3Df & origin, const Vec3Df & dest, const Triangle & triangle)
-{
-    Vec3Df v0 = MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df v1 = MyMesh.vertices[triangle.v[1]].p;
-    Vec3Df v2 = MyMesh.vertices[triangle.v[2]].p;
-	return isTriangleHit(origin, dest, v0, v1, v2);
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle, Vec3Df& result) {
+	Vec3Df q = dest - origin;
+	Vec3Df a = MyMesh.vertices[triangle.v[0]].p - origin;
+	Vec3Df b = MyMesh.vertices[triangle.v[1]].p - origin;
+	Vec3Df c = MyMesh.vertices[triangle.v[2]].p - origin;
 
-}
+	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
+	if (u < FLT_EPSILON) return false;
+	float v = Vec3Df::dotProduct(a, -Vec3Df::crossProduct(q, c));
+	if (v < FLT_EPSILON) return false;
+	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(b, a));
+	if (w < FLT_EPSILON) return false;
 
-Vec3Df intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const Triangle &triangle) {
-	// Based on Moller-Trumbore intersection algorithm
-	Vec3Df v0 = MyMesh.vertices[triangle.v[0]].p;
-    Vec3Df v1 = MyMesh.vertices[triangle.v[1]].p;
-    Vec3Df v2 = MyMesh.vertices[triangle.v[2]].p;
+	float d = 1.0f / (u + v + w);
 
-	Vec3Df e0 = v1 - v0;
-	Vec3Df e1 = v2 - v0;
+	result = Vec3Df(u*d, v*d, w*d);
 
-	Vec3Df direction = dest - origin;
-	direction.normalize();
-
-	Vec3Df p = Vec3Df::crossProduct(direction, e1);
-
-	float det = Vec3Df::dotProduct(e0, p);
-
-	float invDet = 1.f / det;
-
-	Vec3Df t = origin - v0;
-
-	float u = Vec3Df::dotProduct(t, p) * invDet;
-
-	Vec3Df q = Vec3Df::crossProduct(t, e0);
-
-	float v = Vec3Df::dotProduct(direction, q) * invDet;
-
-	float a = Vec3Df::dotProduct(e1, q) * invDet;
-
-	return Vec3Df(v0 + v*v1 + u*v2);
-}
-
-bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2) {// compute plane's normal
-	// Based on Moller-Trumbore intersection algorithm
-	Vec3Df e0 = v1 - v0;
-	Vec3Df e1 = v2 - v0;
-
-	Vec3Df direction = dest - origin;
-	direction.normalize();
-
-	Vec3Df p = Vec3Df::crossProduct(direction, e1);
-
-	float det = Vec3Df::dotProduct(e0, p);
-
-	if (fabs(det) < 0.0000001) {
-		return false;
-	}
-	float invDet = 1.f / det;
-
-	Vec3Df t = origin - v0;
-
-	float u = Vec3Df::dotProduct(t, p) * invDet;
-
-	if (u < 0 || u > 1) {
-		return false;
-	}
-
-	Vec3Df q = Vec3Df::crossProduct(t, e0);
-
-	float v = Vec3Df::dotProduct(direction, q) * invDet;
-
-	if (v < 0 || u + v > 1) {
-		return false;
-	}
-
-	float a = Vec3Df::dotProduct(e1, q) * invDet;
-
-	return a > 0.0000001;
+	return true;
 }
 
 void yourDebugDraw()
