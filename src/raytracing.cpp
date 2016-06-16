@@ -1,5 +1,5 @@
 #include <stdio.h>
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #endif
 #include <GL/glut.h>
