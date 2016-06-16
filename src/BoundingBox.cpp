@@ -4,9 +4,16 @@
 #include <algorithm>
 #include "raytracing.h"
 
+
 BoundingBox::BoundingBox() : vertices(std::vector<Vertex>()) {
 	origin = Vec3Df(0, 0, 0);
 	dimensions = Vec3Df(0, 0, 0);
+}
+
+BoundingBox::BoundingBox(const BoundingBox& box) : vertices(box.vertices) {
+	this->triangles = box.triangles;
+	this->dimensions = box.dimensions;
+	this->origin = box.origin;
 }
 
 BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices) {
@@ -207,8 +214,10 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 		return result;
 	} else {
 		std::pair<BoundingBox, BoundingBox> pair = doSplit();
-		BoxesTree* left = pair.first.splitToTree(threshold);
-		BoxesTree* right = pair.second.splitToTree(threshold);
+		BoundingBox* leftBox = new BoundingBox(pair.first);
+		BoundingBox* rightBox = new BoundingBox(pair.second);
+		BoxesTree* left = leftBox->splitToTree(threshold);
+		BoxesTree* right = rightBox->splitToTree(threshold);
 		BoxesNode* node = new BoxesNode(this, left, right);
 		return node;
 	}
@@ -216,7 +225,7 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 
 bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
 	std::vector<Triangle> triangles = this->getBoundingTriangles();
-	std::vector<Vec3Df> vertices = this->getVertices();
+	const std::vector<Vec3Df>& vertices = this->getVertices();
 	for(int j = 0; j < triangles.size(); j++){
 		Vec3Df hit;
 		if (intersectionPoint(origin, dest, vertices, triangles[j], hit)) {
@@ -232,5 +241,9 @@ BoundingBox &BoundingBox::operator=(const BoundingBox &other) {
 			other.triangles
 	);
 	return box;
+}
+
+std::vector<Triangle> &BoundingBox::getTriangles() {
+	return triangles;
 }
 

@@ -66,27 +66,14 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
-	bool foundBox = false;
-    for(int i=0; i<boxes.size(); ++i) {
-		if (foundBox) {
-			break;
-		}
-        std::vector<Triangle> triangles = boxes[i].getBoundingTriangles();
-        std::vector<Vec3Df> vertices = boxes[i].getVertices();
-        for(int j=0; j<=triangles.size(); ++j){
-			if (j == triangles.size()) break;
-            if (intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
-				foundBox = true;
-				break;
-            }
-        }
-
-    }
+	BoundingBox* box = nullptr;
+	bool foundBox = tree->findBox(origin, dest, box);
 	if (!foundBox) {
 		return false;
 	}
-    for(int i=0; i<MyMesh.triangles.size(); ++i) {
-        Triangle triangle = MyMesh.triangles[i];
+	std::vector<Triangle> &triangles = box->getTriangles();
+	for(int i=0; i < triangles.size(); ++i) {
+        Triangle triangle = triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {

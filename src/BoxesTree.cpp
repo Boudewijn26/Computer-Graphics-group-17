@@ -4,8 +4,8 @@
 
 #include "BoxesTree.h"
 
-bool BoxesNode::findBox(Vec3Df origin, Vec3Df dest, BoundingBox &out) {
-	if (element.doesIntersect(origin, dest)) {
+bool BoxesNode::findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out) {
+	if (element->doesIntersect(origin, dest)) {
 		out = element;
 		return true;
 	}
@@ -15,7 +15,7 @@ bool BoxesNode::findBox(Vec3Df origin, Vec3Df dest, BoundingBox &out) {
 	return left->findBox(origin, dest, out) || right->findBox(origin, dest, out);
 }
 
-BoxesNode::BoxesNode(BoundingBox* element, BoxesTree* left, BoxesTree* right) : BoxesTree(*element) {
+BoxesNode::BoxesNode(BoundingBox* element, BoxesTree* left, BoxesTree* right) : BoxesTree(element) {
 	this->left = left;
 	this->right = right;
 }
@@ -26,21 +26,23 @@ BoxesNode::~BoxesNode() {
 }
 
 
-bool BoxesEndpoint::findBox(Vec3Df origin, Vec3Df dest, BoundingBox &out) {
-	if (element.doesIntersect(origin, dest)) {
+bool BoxesEndpoint::findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out) {
+	if (element->doesIntersect(origin, dest)) {
 		out = element;
 		return true;
 	}
 	return false;
 }
 
-BoxesEndpoint::BoxesEndpoint(BoundingBox* element) : BoxesTree(*element) {
+BoxesEndpoint::BoxesEndpoint(BoundingBox* element) : BoxesTree(element) {
 }
 
 
-BoxesTree::BoxesTree(BoundingBox& element) : element(element) {
+BoxesTree::BoxesTree(BoundingBox* element) {
+	this->element = element;
 }
 
 BoxesTree::~BoxesTree() {
+	delete element;
 }
 

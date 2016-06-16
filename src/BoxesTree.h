@@ -11,12 +11,12 @@ class BoundingBox;
 class BoxesTree {
 
 public:
-	BoxesTree(BoundingBox& element);
+	BoxesTree(BoundingBox* element);
 	~BoxesTree();
-	virtual bool findBox(Vec3Df origin, Vec3Df dest, BoundingBox& out) = 0;
+	virtual bool findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out) = 0;
 
 protected:
-	BoundingBox& element;
+	BoundingBox* element;
 
 };
 
@@ -24,7 +24,7 @@ protected:
 class BoxesNode : public BoxesTree {
 public:
 	BoxesNode(BoundingBox* element, BoxesTree* left, BoxesTree* right);
-	bool findBox(Vec3Df origin, Vec3Df dest, BoundingBox& out);
+	bool findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out);
 	~BoxesNode();
 
 private:
@@ -35,6 +35,6 @@ private:
 class BoxesEndpoint : public BoxesTree {
 public:
 	BoxesEndpoint(BoundingBox* element);
-	bool findBox(Vec3Df origin, Vec3Df dest, BoundingBox& out);
+	bool findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out);
 
 };
