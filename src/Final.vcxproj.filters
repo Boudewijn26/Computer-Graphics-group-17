@@ -5,6 +5,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="raytracing.cpp" />
+    <ClCompile Include="BoxesTree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
@@ -15,6 +16,7 @@
     <ClInclude Include="traqueboule.h" />
     <ClInclude Include="Vec3D.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="BoxesTree.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
