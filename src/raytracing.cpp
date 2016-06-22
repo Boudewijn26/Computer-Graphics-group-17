@@ -5,8 +5,6 @@
 #include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include "raytracing.h"
 
 
@@ -56,7 +54,7 @@ void init()
 	BoundingBox* mainTree = new BoundingBox(main);
 	boxes = main.split(2000);
 	tree = mainTree->splitToTree(5000);
-	printf("Calculated bounding box with %d boxes \n", (int) boxes.size());
+	printf("Calculated bounding box with %d boxes\n", (int) boxes.size());
 }
 
 //return the color of your pixel.
@@ -104,15 +102,20 @@ Vec3Df shade(Intersection intersection, int level) {
     Vec3Df directColor;
 	Vec3Df result = Vec3Df(0,0,0);
 
-	MyMesh.computeVertexNormals();
-    for(int i=0; i<MyLightPositions.size(); i++){
-		unsigned int triMat = MyMesh.triangleMaterials.at(intersection.index);
-		directColor = MyMesh.materials.at(triMat).Kd();
-		Vec3Df lightVec = (MyLightPositions[i] - intersection.intersect);
-		lightVec.normalize();
+	// Shading for sun
+	unsigned int mat = MyMesh.triangleMaterials.at(intersection.index);
+	directColor = MyMesh.materials.at(mat).Kd();
+	Vec3Df sunVector = MyLightPositions[0];
+	sunVector.normalize();
+	Vec3Df lightVec = (sunVector - intersection.intersect);
+	lightVec.normalize();
 
-		result += directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
-    }
+	rgb lightColors = sunVectorToRgb(lightVec);
+	directColor.p[0] = (float) (directColor.p[0] * lightColors.r);
+	directColor.p[1] = (float) (directColor.p[1] * lightColors.g);
+	directColor.p[2] = (float) (directColor.p[2] * lightColors.b);
+
+	result += directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
   /*  if(level<2) // && reflects
     {
         //calculate reflection vector
@@ -124,6 +127,16 @@ Vec3Df shade(Intersection intersection, int level) {
         //calculate refraction vector
        refr = trace(hit, Vec3Df(0,0,0)refraction, level+1);
     } */
+
+	if (result.p[0] > 1) {
+		result.p[0] = 1;
+	}
+	if (result.p[1] > 1) {
+		result.p[1] = 1;
+	}
+	if (result.p[2] > 1) {
+		result.p[2] = 1;
+	}
     return result;
 }
 
