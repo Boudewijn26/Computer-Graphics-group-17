@@ -17,14 +17,18 @@ BoundingBox::BoundingBox(const BoundingBox& box) : vertices(box.vertices) {
 }
 
 BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices) {
-	init(mesh.vertices, mesh.triangles);
+	for (std::vector<Triangle>::const_iterator it = mesh.triangles.begin(); it != mesh.triangles.end(); ++it) {
+		const Triangle* trianglePtr = &*it;
+		this->triangles.push_back(trianglePtr);
+	}
+	init(mesh.vertices, triangles);
 }
 
-BoundingBox::BoundingBox(const std::vector<Vertex>& vertices, std::vector<Triangle> triangles) : vertices(vertices) {
+BoundingBox::BoundingBox(const std::vector<Vertex>& vertices, std::vector<const Triangle*> triangles) : vertices(vertices) {
 	init(vertices, triangles);
 }
 
-void BoundingBox::init(std::vector<Vertex> vertices, std::vector<Triangle> triangles) {
+void BoundingBox::init(std::vector<Vertex> vertices, std::vector<const Triangle*> triangles) {
 	float lowestX = std::numeric_limits<float>::max();
 	float lowestY = lowestX;
 	float lowestZ = lowestX;
@@ -33,8 +37,8 @@ void BoundingBox::init(std::vector<Vertex> vertices, std::vector<Triangle> trian
 	float highestY = highestX;
 	float highestZ = highestX;
 
-	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		Triangle triangle = *it;
+	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		Triangle triangle = **it;
 		for (int i = 0; i < 3; i++) {
 			Vec3Df vertex = vertices[triangle.v[i]].p;
 			lowestX = std::min(lowestX, vertex[0]);
@@ -51,8 +55,6 @@ void BoundingBox::init(std::vector<Vertex> vertices, std::vector<Triangle> trian
 	this->origin = Vec3Df(lowestX, lowestY, lowestZ);
 	Vec3Df farCorner = Vec3Df(highestX, highestY, highestZ);
 	this->dimensions = farCorner - origin;
-
-	this->triangles = triangles;
 }
 
 std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
@@ -67,24 +69,24 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	}
 
 	float sum = 0;
-	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		Triangle triangle = *it;
+	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		const Triangle* triangle = *it;
 
-		sum += vertices[triangle.v[0]].p[axis] + vertices[triangle.v[1]].p[axis] + vertices[triangle.v[2]].p[axis];
+		sum += vertices[triangle->v[0]].p[axis] + vertices[triangle->v[1]].p[axis] + vertices[triangle->v[2]].p[axis];
 
 	}
 	float splitPoint = sum / (triangles.size() * 3);
 
-	std::vector<Triangle> firstBox;
-	std::vector<Triangle> secondBox;
+	std::vector<const Triangle*> firstBox;
+	std::vector<const Triangle*> secondBox;
 
-	for (std::vector<Triangle>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		Triangle triangle = *it;
+	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
+		const Triangle* triangle = *it;
 		bool inFirst = false;
 		bool inSecond = false;
 
 		for (int i = 0; i < 3; i++) {
-			float pointOnAxis = vertices[triangle.v[i]].p[axis];
+			float pointOnAxis = vertices[triangle->v[i]].p[axis];
 			if (!inFirst && (pointOnAxis < splitPoint)) {
 				firstBox.push_back(triangle);
 				inFirst = true;
@@ -235,7 +237,15 @@ bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
 	return false;
 }
 
-std::vector<Triangle> & BoundingBox::getTriangles() {
+BoundingBox &BoundingBox::operator=(const BoundingBox &other) {
+	BoundingBox box = BoundingBox(
+			other.vertices,
+			other.triangles
+	);
+	return box;
+}
+
+std::vector<const Triangle*> &BoundingBox::getTriangles() {
 	return triangles;
 }
 

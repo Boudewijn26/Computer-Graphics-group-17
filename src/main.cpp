@@ -18,6 +18,7 @@
 #include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
+#include <chrono>
 
 //This is the main application
 //Most of the code in here, does not need to be modified.
@@ -215,6 +216,10 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X - 1, 0, &origin10, &dest10);
 		produceRay(WindowSize_X - 1, WindowSize_Y - 1, &origin11, &dest11);
 
+		using namespace std::chrono;
+		long start = duration_cast<milliseconds>(
+			system_clock::now().time_since_epoch()
+			).count();
 		float totalPixels = WindowSize_X*WindowSize_Y;
 
 		for (unsigned int y = 0; y < WindowSize_Y; ++y)
@@ -242,6 +247,10 @@ void keyboard(unsigned char key, int x, int y)
 				}
 			}
 
+		long end = duration_cast<milliseconds>(
+			system_clock::now().time_since_epoch()
+			).count();
+		cout << "Total time: " << end - start << endl;
 		result.writeImage("result.ppm");
 		break;
 	}

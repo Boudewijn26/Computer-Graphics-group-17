@@ -5,6 +5,8 @@
 #include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "raytracing.h"
 
 
@@ -72,9 +74,9 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	if (!foundBox) {
 		return false;
 	}
-	std::vector<Triangle>& triangles = box->getTriangles();
+	std::vector<const Triangle*> &triangles = box->getTriangles();
 	for(int i=0; i < triangles.size(); ++i) {
-        Triangle triangle = triangles[i];
+        Triangle triangle = *triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {
