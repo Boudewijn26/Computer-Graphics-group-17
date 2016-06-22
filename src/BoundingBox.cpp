@@ -25,6 +25,7 @@ BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices) {
 }
 
 BoundingBox::BoundingBox(const std::vector<Vertex>& vertices, std::vector<const Triangle*> triangles) : vertices(vertices) {
+	this->triangles = triangles;
 	init(vertices, triangles);
 }
 
