@@ -5,6 +5,7 @@
 #include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
+#include <math.h>
 #include "raytracing.h"
 
 using namespace std;
@@ -97,14 +98,14 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	if (!foundBox) {
 		return false;
 	}
-	vector<const Triangle*> &triangles = box->getTriangles();
+	vector<int> &triangles = box->getTriangles();
 	for(int i=0; i < triangles.size(); ++i) {
-        Triangle triangle = *triangles[i];
+        Triangle triangle = MyMesh.triangles[triangles[i]];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
-				intersection.index = i;
+				intersection.index = triangles[i];
 				intersection.intersect = intersect;
 				intersection.normal =
 					Vec3Df::crossProduct(MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p,

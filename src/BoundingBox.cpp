@@ -5,31 +5,33 @@
 #include "raytracing.h"
 
 
-BoundingBox::BoundingBox() : vertices(std::vector<Vertex>()) {
+BoundingBox::BoundingBox() : vertices(std::vector<Vertex>()), triangles(std::vector<Triangle>()) {
 	origin = Vec3Df(0, 0, 0);
 	dimensions = Vec3Df(0, 0, 0);
 }
 
-BoundingBox::BoundingBox(const BoundingBox& box) : vertices(box.vertices) {
-	this->triangles = box.triangles;
+BoundingBox::BoundingBox(const BoundingBox& box) : vertices(box.vertices), triangles(box.triangles) {
+	this->triangleIndices = box.triangleIndices;
 	this->dimensions = box.dimensions;
 	this->origin = box.origin;
 }
 
-BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices) {
-	for (std::vector<Triangle>::const_iterator it = mesh.triangles.begin(); it != mesh.triangles.end(); ++it) {
-		const Triangle* trianglePtr = &*it;
-		this->triangles.push_back(trianglePtr);
+BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices), triangles(mesh.triangles) {
+	for (int i = 0; i < mesh.triangles.size(); i++) {
+		triangleIndices.push_back(i);
 	}
-	init(mesh.vertices, triangles);
+	init(mesh.vertices, triangleIndices);
 }
 
-BoundingBox::BoundingBox(const std::vector<Vertex>& vertices, std::vector<const Triangle*> triangles) : vertices(vertices) {
-	this->triangles = triangles;
-	init(vertices, triangles);
+BoundingBox::BoundingBox(
+		const std::vector<Vertex>& vertices,
+		const std::vector<Triangle>& triangles,
+		std::vector<int> triangleIndices) : vertices(vertices), triangles(triangles){
+	this->triangleIndices = triangleIndices;
+	init(vertices, triangleIndices);
 }
 
-void BoundingBox::init(std::vector<Vertex> vertices, std::vector<const Triangle*> triangles) {
+void BoundingBox::init(std::vector<Vertex> vertices, std::vector<int> triangleIndices) {
 	float lowestX = std::numeric_limits<float>::max();
 	float lowestY = lowestX;
 	float lowestZ = lowestX;
@@ -38,8 +40,8 @@ void BoundingBox::init(std::vector<Vertex> vertices, std::vector<const Triangle*
 	float highestY = highestX;
 	float highestZ = highestX;
 
-	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		Triangle triangle = **it;
+	for (std::vector<int>::iterator it = triangleIndices.begin(); it != triangleIndices.end(); ++it) {
+		Triangle triangle = triangles[*it];
 		for (int i = 0; i < 3; i++) {
 			Vec3Df vertex = vertices[triangle.v[i]].p;
 			lowestX = std::min(lowestX, vertex[0]);
@@ -70,37 +72,37 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	}
 
 	float sum = 0;
-	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		const Triangle* triangle = *it;
+	for (std::vector<int>::iterator it = triangleIndices.begin(); it != triangleIndices.end(); ++it) {
+		Triangle triangle = triangles[*it];
 
-		sum += vertices[triangle->v[0]].p[axis] + vertices[triangle->v[1]].p[axis] + vertices[triangle->v[2]].p[axis];
+		sum += vertices[triangle.v[0]].p[axis] + vertices[triangle.v[1]].p[axis] + vertices[triangle.v[2]].p[axis];
 
 	}
-	float splitPoint = sum / (triangles.size() * 3);
+	float splitPoint = sum / (triangleIndices.size() * 3);
 
-	std::vector<const Triangle*> firstBox;
-	std::vector<const Triangle*> secondBox;
+	std::vector<int> firstBox;
+	std::vector<int> secondBox;
 
-	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
-		const Triangle* triangle = *it;
+	for (std::vector<int>::iterator it = triangleIndices.begin(); it != triangleIndices.end(); ++it) {
+		Triangle triangle = triangles[*it];
 		bool inFirst = false;
 		bool inSecond = false;
 
 		for (int i = 0; i < 3; i++) {
-			float pointOnAxis = vertices[triangle->v[i]].p[axis];
+			float pointOnAxis = vertices[triangle.v[i]].p[axis];
 			if (!inFirst && (pointOnAxis < splitPoint)) {
-				firstBox.push_back(triangle);
+				firstBox.push_back(*it);
 				inFirst = true;
 			}
 			if (!inSecond && (pointOnAxis > splitPoint)) {
-				secondBox.push_back(triangle);
+				secondBox.push_back(*it);
 				inSecond = true;
 			}
 		}
 	}
 
-	BoundingBox first = BoundingBox(vertices, firstBox);
-	BoundingBox second = BoundingBox(vertices, secondBox);
+	BoundingBox first = BoundingBox(vertices, triangles, firstBox);
+	BoundingBox second = BoundingBox(vertices, triangles, secondBox);
 	return std::pair<BoundingBox, BoundingBox>(first, second);
 }
 
@@ -170,17 +172,17 @@ std::vector<unsigned int> BoundingBox::getDrawingIndices() const {
 }
 
 void BoundingBox::split(std::vector<BoundingBox>& boxes, int threshold) {
-	if (triangles.size() < threshold) {
-		boxes.push_back(BoundingBox(vertices, triangles));
+	if (triangleIndices.size() < threshold) {
+		boxes.push_back(BoundingBox(vertices, triangles, triangleIndices));
 		return;
 	}
 	std::pair<BoundingBox, BoundingBox> pair = doSplit();
-	if (pair.first.triangles.size() < threshold) {
+	if (pair.first.triangleIndices.size() < threshold) {
 		boxes.push_back(pair.first);
 	} else {
 		pair.first.split(boxes, threshold);
 	}
-	if (pair.second.triangles.size() < threshold) {
+	if (pair.second.triangleIndices.size() < threshold) {
 		boxes.push_back(pair.second);
 	} else {
 		pair.second.split(boxes, threshold);
@@ -212,7 +214,7 @@ std::vector<Triangle> BoundingBox::getBoundingTriangles() {
 }
 
 BoxesTree* BoundingBox::splitToTree(int threshold) {
-	if (triangles.size() < threshold) {
+	if (triangleIndices.size() < threshold) {
 		BoxesEndpoint* result = new BoxesEndpoint(this);
 		return result;
 	} else {
@@ -241,12 +243,13 @@ bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
 BoundingBox &BoundingBox::operator=(const BoundingBox &other) {
 	BoundingBox box = BoundingBox(
 			other.vertices,
-			other.triangles
+			other.triangles,
+			other.triangleIndices
 	);
 	return box;
 }
 
-std::vector<const Triangle*> &BoundingBox::getTriangles() {
-	return triangles;
+std::vector<int> &BoundingBox::getTriangles() {
+	return triangleIndices;
 }
 
