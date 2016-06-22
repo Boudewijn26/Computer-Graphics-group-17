@@ -11,11 +11,7 @@
 #include <GL/glut.h>
 #endif
 
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
 #include "raytracing.h"
-#include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
 #include <chrono>
@@ -36,8 +32,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh
 Mesh MyMesh;
 
-unsigned int WindowSize_X = 800;  // resolution X
-unsigned int WindowSize_Y = 800;  // resolution Y
+unsigned int WindowSize_X = 1920;  // resolution X
+unsigned int WindowSize_Y = 1080;  // resolution Y
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -188,13 +184,6 @@ void keyboard(unsigned char key, int x, int y)
 	fflush(stdout);
 	switch (key)
 	{
-		//add/update a light based on the camera position.
-	case 'L':
-		MyLightPositions.push_back(getCameraPosition());
-		break;
-	case 'l':
-		MyLightPositions[MyLightPositions.size() - 1] = getCameraPosition();
-		break;
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
@@ -240,9 +229,8 @@ void keyboard(unsigned char key, int x, int y)
 
 				//store the result in an image
 				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
-				if (x % 1024 == 0)
-				{
-					float percentage = (((float)y*WindowSize_X + x) / totalPixels) *100;
+				if ((x % 1024) == 0) {
+					float percentage = (((float) y * WindowSize_X + x) / totalPixels) * 100;
 					cout << "Rendered percentage: " << percentage << "%" << endl;
 				}
 			}
