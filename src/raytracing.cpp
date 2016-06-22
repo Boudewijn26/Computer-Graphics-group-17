@@ -83,7 +83,9 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
     for(int i=0; i<MyMesh.triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
+            std::cout<<"Intersection found! at triangle:"<<i<<std::endl;
 			float distance = (intersect - origin).getLength();
+            std::cout<<"With distance:"<<distance<<" and color:"<<shade(intersection, level)<<std::endl;
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
 				intersection.index = i;
