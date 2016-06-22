@@ -50,7 +50,10 @@ void init()
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
-	Vec3Df sunVector = calculateSunVector();
+
+	sunVector = calculateSunVector();
+	sunVector.normalize();
+	sunColor = sunVectorToRgb(sunVector);
 	MyLightPositions.push_back(sunVector);
 
 	BoundingBox main = BoundingBox(MyMesh);
@@ -62,9 +65,6 @@ void init()
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	Vec3Df result;
-	sunVector = calculateSunVector();
-	sunVector.normalize();
-	sunColor = sunVectorToRgb(sunVector);
 	if (trace(origin, dest, 0, result)) return result;
 	return Vec3Df(0, 0, 0);
 }
@@ -100,23 +100,62 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	return true;
 }
 
+Vec3Df diffuse(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightpos) {
+	Vec3Df diffuse = Vec3Df(0,0,0);
+	normal.normalize();
+	lightpos.normalize();
+
+	Vec3Df materialWithSun = Vec3Df(
+			(float) (sunColor.r * material->Kd().p[0]),
+			(float) (sunColor.g * material->Kd().p[1]),
+			(float) (sunColor.b * material->Kd().p[2])
+	);
+	diffuse += materialWithSun * fmax(Vec3Df::dotProduct(normal, lightpos), 0.0f);
+
+	return diffuse;
+}
+
+Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightpos) {
+	Vec3Df reflect = Vec3Df(0,0,0);
+	normal.normalize();
+	lightpos.normalize();
+
+	Vec3Df materialWithSun = Vec3Df(
+			(float) (sunColor.r * material->Kd().p[0]),
+			(float) (sunColor.g * material->Kd().p[1]),
+			(float) (sunColor.b * material->Kd().p[2])
+	);
+
+	//TODO Calculate reflection
+
+	return reflect;
+}
+
+Material getMat(int index) {
+	int matIndex = MyMesh.triangleMaterials[index];
+	return MyMesh.materials[matIndex];
+}
+
 Vec3Df shade(Intersection intersection, int level) {
     Vec3Df refl = Vec3Df(0,0,0);
 	Vec3Df refr = Vec3Df(0,0,0);
-    Vec3Df directColor;
 	Vec3Df result = Vec3Df(0,0,0);
 
-	// Shading for sun
-	unsigned int mat = MyMesh.triangleMaterials.at(intersection.index);
-	directColor = MyMesh.materials.at(mat).Kd();
-	Vec3Df lightVec = (sunVector - intersection.intersect);
-	lightVec.normalize();
+	Material material = getMat(MyMesh.triangleMaterials.at(intersection.index));
 
-	directColor.p[0] = (float) fmin((directColor.p[0] * sunColor.r), 1.0);
-	directColor.p[1] = (float) fmin((directColor.p[1] * sunColor.g), 1.0);
-	directColor.p[2] = (float) fmin((directColor.p[2] * sunColor.b), 1.0);
+	if (material.has_Kd()) {
+		std::cout << material.Kd() << std::endl;
+		result += diffuse(intersection.intersect, intersection.normal, &material, sunVector);
+	}
 
-	result = directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
+	if (material.has_Ks()) {
+		result += blinnPhong(intersection.intersect, intersection.normal, &material, sunVector);
+	}
+
+	if (material.has_Ka()) {
+		result += material.Ka();
+	}
+
   /*  if(level<2) // && reflects
     {
         //calculate reflection vector
@@ -166,7 +205,7 @@ bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vect
 
 	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
 	if (u < FLT_EPSILON) return false;
-	float v = Vec3Df::dotProduct(a, -Vec3Df::crossProduct(q, c));
+	float v = -Vec3Df::dotProduct(a, Vec3Df::crossProduct(q, c));
 	if (v < FLT_EPSILON) return false;
 	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(b, a));
 	if (w < FLT_EPSILON) return false;
@@ -328,7 +367,6 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 		yawAngle -= ANGLE_STEP;
 	}
 	//...
-
 
 	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;
 }
