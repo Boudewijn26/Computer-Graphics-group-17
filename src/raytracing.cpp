@@ -7,6 +7,8 @@
 #include <float.h>
 #include "raytracing.h"
 
+using namespace std;
+
 
 //temporary variables
 //these are only used to illustrate
@@ -23,8 +25,8 @@ float yawAngle = 0;
 BoundingBox box = BoundingBox();
 BoxesTree* tree;
 
-std::vector<BoundingBox> boxes;
-std::vector<Vec3Df> meshPoints;
+vector<BoundingBox> boxes;
+vector<Vec3Df> meshPoints;
 
 void drawBox(BoundingBox box);
 
@@ -33,6 +35,8 @@ bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, c
 Vec3Df calculateSunVector();
 
 rgb sunVectorToRgb(Vec3Df sunVector);
+
+void calculateSun();
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -51,14 +55,19 @@ void init()
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 
-	sunVector = calculateSunVector();
-	sunVector.normalize();
-	sunColor = sunVectorToRgb(sunVector);
-	MyLightPositions.push_back(sunVector);
+    calculateSun();
 
-	BoundingBox main = BoundingBox(MyMesh);
+    BoundingBox main = BoundingBox(MyMesh);
 	BoundingBox* mainTree = new BoundingBox(main);
 	tree = mainTree->splitToTree(500);
+}
+
+void calculateSun() {
+    sunVector = calculateSunVector();
+    sunVector.normalize();
+    sunColor = sunVectorToRgb(sunVector);
+    MyLightPositions.clear();
+    MyLightPositions.push_back(sunVector);
 }
 
 //return the color of your pixel.
@@ -77,7 +86,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	if (!foundBox) {
 		return false;
 	}
-	std::vector<const Triangle*> &triangles = box->getTriangles();
+	vector<const Triangle*> &triangles = box->getTriangles();
 	for(int i=0; i < triangles.size(); ++i) {
         Triangle triangle = *triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
@@ -144,7 +153,6 @@ Vec3Df shade(Intersection intersection, int level) {
 	Material material = getMat(MyMesh.triangleMaterials.at(intersection.index));
 
 	if (material.has_Kd()) {
-		std::cout << material.Kd() << std::endl;
 		result += diffuse(intersection.intersect, intersection.normal, &material, sunVector);
 	}
 
@@ -153,7 +161,7 @@ Vec3Df shade(Intersection intersection, int level) {
 	}
 
 	if (material.has_Ka()) {
-		result += material.Ka();
+		//result += material.Ka();
 	}
 
   /*  if(level<2) // && reflects
@@ -189,15 +197,15 @@ Vec3Df shade(Intersection intersection, int level) {
     return result;
 }
 
-std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices) {
-	std::vector<Vec3Df> points;
+vector<Vec3Df> getVerticePoints(const vector<Vertex> &vertices) {
+	vector<Vec3Df> points;
 	for(int i=0; i<vertices.size(); ++i){
         points.push_back(vertices[i].p);
 	}
 	return points;
 }
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
+bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
 	Vec3Df q = dest - origin;
 	Vec3Df a = vertices[triangle.v[0]] - origin;
 	Vec3Df b = vertices[triangle.v[1]] - origin;
@@ -219,8 +227,6 @@ bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vect
 
 void yourDebugDraw()
 {
-	Vec3Df sunVector = calculateSunVector();
-
 	float lightPosition[4] = {sunVector[0], sunVector[1], sunVector[2], 0};
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	rgb sunColor = sunVectorToRgb(sunVector);
@@ -252,7 +258,7 @@ void yourDebugDraw()
 	//the color to white, it will be reset to the previous
 	//state after the pop.
 
-	for (std::vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
+	for (vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
 		BoundingBox box = *it;
 		drawBox(box);
 	}
@@ -283,9 +289,9 @@ void drawBox(BoundingBox box) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glBegin(GL_TRIANGLES);
 	glColor3f(1, 1, 1);
-	std::vector<Vec3Df> boxVertices = box.getVertices();
-	std::vector<unsigned int> boxIndices = box.getDrawingIndices();
-	for(std::vector<unsigned int>::iterator it = boxIndices.begin(); it != boxIndices.end(); ++it) {
+	vector<Vec3Df> boxVertices = box.getVertices();
+	vector<unsigned int> boxIndices = box.getDrawingIndices();
+	for(vector<unsigned int>::iterator it = boxIndices.begin(); it != boxIndices.end(); ++it) {
 		int index = *it;
 		Vec3Df vertex = boxVertices[index];
 		glVertex3f(vertex[0], vertex[1], vertex[2]);
@@ -359,16 +365,20 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	// do here, whatever you want with the keyboard input t.
 	if (t == 'w') {
 		pitchAngle += ANGLE_STEP;
+        calculateSun();
 	} else if (t == 's') {
 		pitchAngle -= ANGLE_STEP;
+        calculateSun();
 	} else if (t == 'a') {
 		yawAngle += ANGLE_STEP;
+        calculateSun();
 	} else if (t == 'd') {
 		yawAngle -= ANGLE_STEP;
+        calculateSun();
 	}
 	//...
 
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;
+	cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<endl;
 }
 
 Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
