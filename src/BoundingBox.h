@@ -24,6 +24,8 @@ public:
 	BoxesTree* splitToTree(int threshold);
 	bool doesIntersect(Vec3Df origin, Vec3Df dest);
 
+	BoundingBox &operator=(const BoundingBox &other);
+
 private:
 	void init(std::vector<Vertex> vertices, std::vector<const Triangle*> triangles);
 	std::pair<BoundingBox, BoundingBox> doSplit();
