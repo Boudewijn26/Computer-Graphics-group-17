@@ -139,23 +139,74 @@ std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices) {
 }
 
 bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
+
+    //Find vectors for two edges sharing V1
+  SUB(e1, V2, V1);
+  SUB(e2, V3, V1);
+  //Begin calculating determinant - also used to calculate u parameter
+  CROSS(P, D, e2);
+  //if determinant is near zero, ray lies in plane of triangle
+  det = DOT(e1, P);
+  //NOT CULLING
+  if(det > -EPSILON && det < EPSILON) return 0;
+  inv_det = 1.f / det;
+
+  //calculate distance from V1 to ray origin
+  SUB(T, O, V1);
+
+  //Calculate u parameter and test bound
+  u = DOT(T, P) * inv_det;
+  //The intersection lies outside of the triangle
+  if(u < 0.f || u > 1.f) return 0;
+
+  //Prepare to test v parameter
+  CROSS(Q, T, e1);
+
+  //Calculate V parameter and test bound
+  v = DOT(D, Q) * inv_det;
+  //The intersection lies outside of the triangle
+  if(v < 0.f || u + v  > 1.f) return 0;
+
+  t = DOT(e2, Q) * inv_det;
+
+  if(t > EPSILON) { //ray intersection
+    *out = t;
+    return 1;
+  }
+
+  // No hit, no win
+  return 0;
+
+
 	Vec3Df q = dest - origin;
 	Vec3Df a = vertices[triangle.v[0]] - origin;
 	Vec3Df b = vertices[triangle.v[1]] - origin;
 	Vec3Df c = vertices[triangle.v[2]] - origin;
 
-	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
-	if (u < FLT_EPSILON) return false;
-	float v = Vec3Df::dotProduct(a, -Vec3Df::crossProduct(q, c));
-	if (v < FLT_EPSILON) return false;
-	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(b, a));
-	if (w < FLT_EPSILON) return false;
+    Vec3Df e1 = b-a;
+    Vec3Df e2 = c-a;
 
-	float d = 1.0f / (u + v + w);
+    Vec3Df P = Vec3Df::crossProduct(q, e2);
+    float det = Vec3Df::dotProduct(e1,P);
+    if(det > -FLT_EPSILON && det < FLT_EPSILON) return false;
+    inv_det = 1.f / det;
 
-	result = Vec3Df(u*d, v*d, w*d);
+    Vec3Df T = origin - a;
 
-	return true;
+	float u = Vec3Df::dotProduct(T, P)*inv_det;
+	if (u < 0.f || u > 1.f) return false;
+	Vec3Df Q = Vec3Df::crossProduct(T, e1);
+
+	float v = Vec3Df::dotProduct(q, Q);
+	if (v < 0.f || u + v > 1.f) return false;
+
+	float t = Vec3Df::dotProduct(e2, Q) * inv_det;
+	if (t > FLT_EPSILON){
+        //float d = 1.0f / (u + v + w);
+        result = a + u*c + v*b;
+	}
+
+	return false;
 }
 
 void yourDebugDraw()
