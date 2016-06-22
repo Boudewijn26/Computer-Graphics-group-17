@@ -50,8 +50,9 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 
 	BoundingBox main = BoundingBox(MyMesh);
+	BoundingBox* mainTree = new BoundingBox(main);
 	boxes = main.split(2000);
-	tree = main.splitToTree(5000);
+	tree = mainTree->splitToTree(5000);
 	printf("Calculated bounding box with %d boxes", boxes.size());
 }
 
@@ -71,7 +72,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	if (!foundBox) {
 		return false;
 	}
-	std::vector<Triangle> &triangles = box->getTriangles();
+	std::vector<Triangle>& triangles = box->getTriangles();
 	for(int i=0; i < triangles.size(); ++i) {
         Triangle triangle = triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {

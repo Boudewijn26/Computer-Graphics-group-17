@@ -5,14 +5,26 @@
 #include "BoxesTree.h"
 
 bool BoxesNode::findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out) {
-	if (element->doesIntersect(origin, dest)) {
-		out = element;
-		return true;
+	if (!element->doesIntersect(origin, dest)) {
+		return false;
 	}
 
-	// This only works because the || shortcircuits
-	// Otherwise the out could be from the second findBox call
-	return left->findBox(origin, dest, out) || right->findBox(origin, dest, out);
+	BoundingBox* leftOut;
+	BoundingBox* rightOut;
+	bool leftIntersect = left->findBox(origin, dest, leftOut);
+	bool rightIntersect = right->findBox(origin, dest, rightOut);
+
+	if (leftIntersect == rightIntersect) {
+		out = element;
+		return true;
+	} else if (leftIntersect) {
+		out = leftOut;
+		return true;
+	} else if (rightIntersect) {
+		out = rightOut;
+		return true;
+	}
+	return false;
 }
 
 BoxesNode::BoxesNode(BoundingBox* element, BoxesTree* left, BoxesTree* right) : BoxesTree(element) {

@@ -235,15 +235,7 @@ bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
 	return false;
 }
 
-BoundingBox &BoundingBox::operator=(const BoundingBox &other) {
-	BoundingBox box = BoundingBox(
-			other.vertices,
-			other.triangles
-	);
-	return box;
-}
-
-std::vector<Triangle> &BoundingBox::getTriangles() {
+std::vector<Triangle> & BoundingBox::getTriangles() {
 	return triangles;
 }
 
