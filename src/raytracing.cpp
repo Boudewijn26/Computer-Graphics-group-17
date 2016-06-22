@@ -14,6 +14,9 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+Vec3Df sunVector;
+rgb sunColor;
+
 float pitchAngle = 0;
 float yawAngle = 0;
 
@@ -27,9 +30,9 @@ void drawBox(BoundingBox box);
 
 bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2);
 
-Vec3Df calculateSunVector() ;
+Vec3Df calculateSunVector();
 
-rgb sunVectorToRgb(Vec3Df sunVector) ;
+rgb sunVectorToRgb(Vec3Df sunVector);
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -52,15 +55,16 @@ void init()
 
 	BoundingBox main = BoundingBox(MyMesh);
 	BoundingBox* mainTree = new BoundingBox(main);
-	boxes = main.split(2000);
-	tree = mainTree->splitToTree(5000);
-	printf("Calculated bounding box with %d boxes\n", (int) boxes.size());
+	tree = mainTree->splitToTree(500);
 }
 
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	Vec3Df result;
+	sunVector = calculateSunVector();
+	sunVector.normalize();
+	sunColor = sunVectorToRgb(sunVector);
 	if (trace(origin, dest, 0, result)) return result;
 	return Vec3Df(0, 0, 0);
 }
@@ -105,17 +109,14 @@ Vec3Df shade(Intersection intersection, int level) {
 	// Shading for sun
 	unsigned int mat = MyMesh.triangleMaterials.at(intersection.index);
 	directColor = MyMesh.materials.at(mat).Kd();
-	Vec3Df sunVector = MyLightPositions[0];
-	sunVector.normalize();
 	Vec3Df lightVec = (sunVector - intersection.intersect);
 	lightVec.normalize();
 
-	rgb lightColors = sunVectorToRgb(lightVec);
-	directColor.p[0] = (float) (directColor.p[0] * lightColors.r);
-	directColor.p[1] = (float) (directColor.p[1] * lightColors.g);
-	directColor.p[2] = (float) (directColor.p[2] * lightColors.b);
+	directColor.p[0] = (float) fmin((directColor.p[0] * sunColor.r), 1.0);
+	directColor.p[1] = (float) fmin((directColor.p[1] * sunColor.g), 1.0);
+	directColor.p[2] = (float) fmin((directColor.p[2] * sunColor.b), 1.0);
 
-	result += directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
+	result = directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
   /*  if(level<2) // && reflects
     {
         //calculate reflection vector
@@ -136,6 +137,15 @@ Vec3Df shade(Intersection intersection, int level) {
 	}
 	if (result.p[2] > 1) {
 		result.p[2] = 1;
+	}
+	if (result.p[0] < 0) {
+		result.p[0] = 0;
+	}
+	if (result.p[1] < 0) {
+		result.p[1] = 0;
+	}
+	if (result.p[2] < 0) {
+		result.p[2] = 0;
 	}
     return result;
 }
