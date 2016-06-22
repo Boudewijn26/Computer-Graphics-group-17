@@ -28,6 +28,10 @@ BoxesTree* tree;
 vector<BoundingBox> boxes;
 vector<Vec3Df> meshPoints;
 
+// Specifies the distance of the sun from the origin
+// This is usefull if the sun is drawn inside objects in the debug view
+float sunDist = 4;
+
 void drawBox(BoundingBox box);
 
 bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2);
@@ -48,7 +52,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("models/gaarding.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -62,12 +66,19 @@ void init()
 	tree = mainTree->splitToTree(500);
 }
 
+/**
+ * True if the vector is the zero vector
+ */
+bool isZero(Vec3Df v) {
+    return v[0] == 0 && v[1] == 0 && v[2] == 0;
+}
+
 void calculateSun() {
     sunVector = calculateSunVector();
-    sunVector.normalize();
-    sunColor = sunVectorToRgb(sunVector);
     MyLightPositions.clear();
     MyLightPositions.push_back(sunVector);
+    sunVector.normalize();
+    sunColor = sunVectorToRgb(sunVector);
 }
 
 //return the color of your pixel.
@@ -109,35 +120,54 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	return true;
 }
 
-Vec3Df diffuse(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightpos) {
+Vec3Df diffuse(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightPos) {
 	Vec3Df diffuse = Vec3Df(0,0,0);
 	normal.normalize();
-	lightpos.normalize();
+	lightPos.normalize();
 
-	Vec3Df materialWithSun = Vec3Df(
+    Vec3Df lightVector = (lightPos - vertexPos); // Get the light position relative from the vertex position
+    lightVector.normalize(); // And normalize it
+
+	// Calculate the material colors with the sun color.
+    Vec3Df materialWithSun = Vec3Df(
 			(float) (sunColor.r * material->Kd().p[0]),
 			(float) (sunColor.g * material->Kd().p[1]),
 			(float) (sunColor.b * material->Kd().p[2])
 	);
-	diffuse += materialWithSun * fmax(Vec3Df::dotProduct(normal, lightpos), 0.0f);
+
+    // Calculate the diffusion (including color)
+    diffuse += materialWithSun * fmax(Vec3Df::dotProduct(normal, lightPos), 0.0f);
 
 	return diffuse;
 }
 
-Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightpos) {
-	Vec3Df reflect = Vec3Df(0,0,0);
+Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightPos) {
+	Vec3Df specularity = Vec3Df(0,0,0);
 	normal.normalize();
-	lightpos.normalize();
+	lightPos.normalize();
+
+    Vec3Df viewVector = (vertexPos - lightPos); // Get the view vector
+    viewVector.normalize(); // And normalize it
+
+    Vec3Df lightVector = (lightPos - vertexPos); // Get the light vector (opposite direction of viewvector.
+    lightVector.normalize(); // And normalize it
+
+    // Calculate the halfway vector
+    Vec3Df halfwayVector = viewVector + lightVector;
+    halfwayVector.normalize();
+
+    float specTerm = max(Vec3Df::dotProduct(halfwayVector, normal), 0.0f);
+    specTerm = pow(specTerm, material->Ns());
 
 	Vec3Df materialWithSun = Vec3Df(
-			(float) (sunColor.r * material->Kd().p[0]),
-			(float) (sunColor.g * material->Kd().p[1]),
-			(float) (sunColor.b * material->Kd().p[2])
+			(float) (sunColor.r * material->Ks().p[0]),
+			(float) (sunColor.g * material->Ks().p[1]),
+			(float) (sunColor.b * material->Ks().p[2])
 	);
 
-	//TODO Calculate reflection
+    specularity += materialWithSun * specTerm;
 
-	return reflect;
+	return specularity;
 }
 
 Material getMat(int index) {
@@ -152,17 +182,20 @@ Vec3Df shade(Intersection intersection, int level) {
 
 	Material material = getMat(MyMesh.triangleMaterials.at(intersection.index));
 
-	if (material.has_Kd()) {
+	/* Start of shading block */
+    if (material.has_Ka()) {
+//        result += material.Ka();
+        //TODO This makes it white ALWAYS, unsure why
+    }
+
+    if (material.has_Kd()) {
 		result += diffuse(intersection.intersect, intersection.normal, &material, sunVector);
 	}
 
 	if (material.has_Ks()) {
 		result += blinnPhong(intersection.intersect, intersection.normal, &material, sunVector);
 	}
-
-	if (material.has_Ka()) {
-		//result += material.Ka();
-	}
+    /* End of shading block */
 
   /*  if(level<2) // && reflects
     {
@@ -314,7 +347,7 @@ const hsv duskLight = {
 };
 
 Vec3Df calculateSunVector() {
-	return Vec3Df(cos(yawAngle) * sin(pitchAngle), cos(pitchAngle), -sin(yawAngle) * sin(pitchAngle));
+	return Vec3Df(cos(yawAngle) * sin(pitchAngle), cos(pitchAngle), -sin(yawAngle) * sin(pitchAngle)) * sunDist;
 }
 
 rgb sunVectorToRgb(Vec3Df sunVector) {
