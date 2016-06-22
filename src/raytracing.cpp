@@ -299,8 +299,9 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 		yawAngle -= ANGLE_STEP;
 	}
 	//...
-
-
+	Vec3Df resulting;
+    bool trace = trace(rayOrigin, rayDestination, 0, resulting);
+    std::cout<<"Hit: "<<trace<<", color:"<<resulting.p[0]<<resulting.p[1]<<resulting.p[2]<<std::endl;
 	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;
 }
 
