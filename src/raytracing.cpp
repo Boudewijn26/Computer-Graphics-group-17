@@ -4,6 +4,8 @@
 #endif
 #include <GL/glut.h>
 #include <float.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "raytracing.h"
 
 
@@ -353,8 +355,8 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	}
 	//...
 	Vec3Df resulting;
-    bool trace = trace(rayOrigin, rayDestination, 0, resulting);
-    std::cout<<"Hit: "<<trace<<", color:"<<resulting.p[0]<<resulting.p[1]<<resulting.p[2]<<std::endl;
+    bool trace1 = trace(rayOrigin, rayDestination, 0, resulting);
+    std::cout<<"Hit: "<<trace1<<", color: "<<resulting.p[0]<<" "<<resulting.p[1]<<" "<<resulting.p[2]<<std::endl;
 	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;
 }
 
