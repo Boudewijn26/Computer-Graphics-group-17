@@ -2,9 +2,11 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include "BoxesTree.h"
 #include <GL/glut.h>
-#include <GL/gl.h>
-#include <cfloat>
+#include <float.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "raytracing.h"
 
 
@@ -17,16 +19,19 @@ Vec3Df testRayDestination;
 float pitchAngle = 0;
 float yawAngle = 0;
 
+BoundingBox box = BoundingBox();
+BoxesTree* tree;
+
 std::vector<BoundingBox> boxes;
 std::vector<Vec3Df> meshPoints;
 
 void drawBox(BoundingBox box);
 
+bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2);
+
 Vec3Df calculateSunVector() ;
 
 rgb sunVectorToRgb(Vec3Df sunVector) ;
-
-bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2);
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -48,8 +53,10 @@ void init()
 	MyLightPositions.push_back(sunVector);
 
 	BoundingBox main = BoundingBox(MyMesh);
+	BoundingBox* mainTree = new BoundingBox(main);
 	boxes = main.split(2000);
-	printf("Calculated bounding box with %d boxes\n", boxes.size());
+	tree = mainTree->splitToTree(5000);
+	printf("Calculated bounding box with %d boxes \n", (int) boxes.size());
 }
 
 //return the color of your pixel.
@@ -63,27 +70,14 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
-	bool foundBox = false;
-    for(int i=0; i<boxes.size(); ++i) {
-		if (foundBox) {
-			break;
-		}
-        std::vector<Triangle> triangles = boxes[i].getBoundingTriangles();
-        std::vector<Vec3Df> vertices = boxes[i].getVertices();
-        for(int j=0; j<=triangles.size(); ++j){
-			if (j == triangles.size()) break;
-            if (intersectionPoint(origin, dest, vertices, triangles[j], intersect)) {
-				foundBox = true;
-				break;
-            }
-        }
-
-    }
+	BoundingBox* box = nullptr;
+	bool foundBox = tree->findBox(origin, dest, box);
 	if (!foundBox) {
 		return false;
 	}
-    for(int i=0; i<MyMesh.triangles.size(); ++i) {
-        Triangle triangle = MyMesh.triangles[i];
+	std::vector<const Triangle*> &triangles = box->getTriangles();
+	for(int i=0; i < triangles.size(); ++i) {
+        Triangle triangle = *triangles[i];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
 			if (intersection.distance > distance) {

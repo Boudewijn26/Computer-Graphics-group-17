@@ -5,6 +5,7 @@
 #include "BoundingBox.h"
 #include "hsv.h"
 #include "float.h"
+#include <cfloat>
 
 //Welcome to your MAIN PROJECT...
 //THIS IS THE MOST relevant code for you!
