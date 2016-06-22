@@ -5,6 +5,8 @@
 #include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include "raytracing.h"
 
 
@@ -27,8 +29,6 @@ std::vector<BoundingBox> boxes;
 std::vector<Vec3Df> meshPoints;
 
 void drawBox(BoundingBox box);
-
-bool isTriangleHit(const Vec3Df &origin, const Vec3Df &dest, const Vec3Df &v0, const Vec3Df &v1, const Vec3Df &v2);
 
 Vec3Df calculateSunVector();
 
@@ -59,29 +59,29 @@ void init()
 }
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
+Vec3Df performRayTracing(Ray ray)
 {
 	Vec3Df result;
 	sunVector = calculateSunVector();
 	sunVector.normalize();
 	sunColor = sunVectorToRgb(sunVector);
-	if (trace(origin, dest, 0, result)) return result;
+	if (trace(ray, 0, result)) return result;
 	return Vec3Df(0, 0, 0);
 }
 
-bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
+bool trace(Ray ray, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
 	BoundingBox* box = nullptr;
-	bool foundBox = tree->findBox(origin, dest, box);
+	bool foundBox = tree->findBox(ray, box);
 	if (!foundBox) {
 		return false;
 	}
 	std::vector<const Triangle*> &triangles = box->getTriangles();
 	for(int i=0; i < triangles.size(); ++i) {
         Triangle triangle = *triangles[i];
-        if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
-			float distance = (intersect - origin).getLength();
+        if (intersectionPoint(ray, meshPoints, triangle, intersect)) {
+			float distance = (intersect - ray.origin).getLength();
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
 				intersection.index = i;
@@ -158,17 +158,25 @@ std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices) {
 	return points;
 }
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
-	Vec3Df q = dest - origin;
-	Vec3Df a = vertices[triangle.v[0]] - origin;
-	Vec3Df b = vertices[triangle.v[1]] - origin;
-	Vec3Df c = vertices[triangle.v[2]] - origin;
+bool intersectionPoint(Ray ray, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
+	Vec3Df o = ray.origin;
+	Vec3Df q = ray.dest - o;
 
-	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
+	Vertex va = vertices[triangle.v[0]];
+	Vertex vb = vertices[triangle.v[1]];
+	Vertex vc = vertices[triangle.v[2]];
+
+	Vec3Df a = va.p - o;
+	Vec3Df b = vb.p - o;
+	Vec3Df c = vc.p - o;
+
+	Vec3Df cq = Vec3Df::crossProduct(q, c);
+
+	float u = Vec3Df::dotProduct(b, cq);
 	if (u < FLT_EPSILON) return false;
-	float v = Vec3Df::dotProduct(a, -Vec3Df::crossProduct(q, c));
+	float v = -Vec3Df::dotProduct(a, cq);
 	if (v < FLT_EPSILON) return false;
-	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(b, a));
+	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(a, b));
 	if (w < FLT_EPSILON) return false;
 
 	float d = 1.0f / (u + v + w);
@@ -308,14 +316,14 @@ rgb sunVectorToRgb(Vec3Df sunVector) {
 //    the target of the ray - see the code above), but once you replaced
 //    this function and raytracing is in place, it might take a
 //    while to complete...
-void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination)
+void yourKeyboardFunc(char t, int x, int y, Ray ray)
 {
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
-	testRayOrigin=rayOrigin;
-	testRayDestination=rayDestination;
+	testRayOrigin=ray.origin;
+	testRayDestination=ray.dest;
 
 	// do here, whatever you want with the keyboard input t.
 	if (t == 'w') {
@@ -346,10 +354,10 @@ Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
 	return res;
 }
 
-Vec3Df intersectionWithSphere(const Vec3Df & rayOrigin, const Vec3Df & rayDest, const float & radius)
+Vec3Df intersectionWithSphere(Ray ray, const float & radius)
 {
-	Vec3Df p1 = rayOrigin;
-	Vec3Df p2 = rayDest;
+	Vec3Df p1 = ray.origin;
+	Vec3Df p2 = ray.dest;
 
 	float A = p2[0] - p1[0];
 	float B = p2[1] - p1[1];

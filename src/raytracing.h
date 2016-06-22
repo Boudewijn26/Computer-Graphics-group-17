@@ -28,6 +28,18 @@ void init();
 //it is defined elsewhere
 void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
+struct Ray {
+	Vec3Df origin;
+	Vec3Df dest;
+	Vec3Df invdir;
+	Ray(Vec3Df o, Vec3Df d) {
+		origin = o;
+		dest = d;
+		Vec3Df dir = dest - origin;
+		invdir = Vec3Df(1 / dir[0], 1 / dir[1], 1 / dir[2]);
+	}
+};
+
 struct Intersection {
 	float distance = FLT_MAX;
 	int index = -1;
@@ -36,20 +48,20 @@ struct Intersection {
 };
 
 //your main function to rewrite
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
+Vec3Df performRayTracing(Ray ray);
 
-bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result);
+bool trace(Ray ray, int level, Vec3Df& result);
 
 Vec3Df shade(Intersection intersection, int level);
 
 std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices);
 
-bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result);
+bool intersectionPoint(Ray ray, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();
 
 //want keyboard interaction? Here it is...
-void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination);
+void yourKeyboardFunc(char t, int x, int y, Ray ray);
 
 #endif

@@ -4,8 +4,10 @@
 #include "mesh.h"
 #include <utility>
 #include "BoxesTree.h"
+#include "raytracing.h"
 
 class BoxesTree;
+struct Ray;
 
 class BoundingBox {
 public:
@@ -22,7 +24,7 @@ public:
 
 	std::vector<BoundingBox> split(int threshold);
 	BoxesTree* splitToTree(int threshold);
-	bool doesIntersect(Vec3Df origin, Vec3Df dest);
+	bool doesIntersect(Ray ray);
 
 	BoundingBox &operator=(const BoundingBox &other);
 
@@ -33,8 +35,7 @@ private:
 
 	const std::vector<Vertex>& vertices;
 	std::vector<const Triangle*> triangles;
-	Vec3Df origin;
-
-	Vec3Df dimensions;
+	Vec3Df bmin;
+	Vec3Df bmax;
 
 };

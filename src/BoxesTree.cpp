@@ -4,15 +4,15 @@
 
 #include "BoxesTree.h"
 
-bool BoxesNode::findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out) {
-	if (!element->doesIntersect(origin, dest)) {
+bool BoxesNode::findBox(Ray ray, BoundingBox*& out) {
+	if (!element->doesIntersect(ray)) {
 		return false;
 	}
 
 	BoundingBox* leftOut;
 	BoundingBox* rightOut;
-	bool leftIntersect = left->findBox(origin, dest, leftOut);
-	bool rightIntersect = right->findBox(origin, dest, rightOut);
+	bool leftIntersect = left->findBox(ray, leftOut);
+	bool rightIntersect = right->findBox(ray, rightOut);
 
 	if (leftIntersect == rightIntersect) {
 		out = element;
@@ -38,8 +38,8 @@ BoxesNode::~BoxesNode() {
 }
 
 
-bool BoxesEndpoint::findBox(Vec3Df origin, Vec3Df dest, BoundingBox*& out) {
-	if (element->doesIntersect(origin, dest)) {
+bool BoxesEndpoint::findBox(Ray ray, BoundingBox*& out) {
+	if (element->doesIntersect(ray)) {
 		out = element;
 		return true;
 	}

@@ -3,17 +3,17 @@
 #include <limits>
 #include <algorithm>
 #include "raytracing.h"
-
+#include "raytracing.h"
 
 BoundingBox::BoundingBox() : vertices(std::vector<Vertex>()) {
-	origin = Vec3Df(0, 0, 0);
-	dimensions = Vec3Df(0, 0, 0);
+	bmin = Vec3Df(0, 0, 0);
+	bmax = Vec3Df(0, 0, 0);
 }
 
 BoundingBox::BoundingBox(const BoundingBox& box) : vertices(box.vertices) {
 	this->triangles = box.triangles;
-	this->dimensions = box.dimensions;
-	this->origin = box.origin;
+	this->bmin = box.bmin;
+	this->bmax = box.bmax;
 }
 
 BoundingBox::BoundingBox(const Mesh& mesh) : vertices(mesh.vertices) {
@@ -30,37 +30,27 @@ BoundingBox::BoundingBox(const std::vector<Vertex>& vertices, std::vector<const 
 }
 
 void BoundingBox::init(std::vector<Vertex> vertices, std::vector<const Triangle*> triangles) {
-	float lowestX = std::numeric_limits<float>::max();
-	float lowestY = lowestX;
-	float lowestZ = lowestX;
-
-	float highestX = std::numeric_limits<float>::min();
-	float highestY = highestX;
-	float highestZ = highestX;
+	Vec3Df min = Vec3Df(FLT_MAX, FLT_MAX, FLT_MAX);
+	Vec3Df max = Vec3Df(FLT_MIN, FLT_MIN, FLT_MIN);
 
 	for (std::vector<const Triangle*>::iterator it = triangles.begin(); it != triangles.end(); ++it) {
 		Triangle triangle = **it;
 		for (int i = 0; i < 3; i++) {
 			Vec3Df vertex = vertices[triangle.v[i]].p;
-			lowestX = std::min(lowestX, vertex[0]);
-			highestX = std::max(highestX, vertex[0]);
-
-			lowestY = std::min(lowestY, vertex[1]);
-			highestY = std::max(highestY, vertex[1]);
-
-			lowestZ = std::min(lowestZ, vertex[2]);
-			highestZ = std::max(highestZ, vertex[2]);
+			for (int j = 0; j < 3; j++) {
+				min[j] = std::min(min[j], vertex[0]);
+				max[j] = std::max(max[j], vertex[0]);
+			}
 		}
 	}
 
-	this->origin = Vec3Df(lowestX, lowestY, lowestZ);
-	Vec3Df farCorner = Vec3Df(highestX, highestY, highestZ);
-	this->dimensions = farCorner - origin;
+	this->bmin = min;
+	this->bmax = max;
 }
 
 std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 	int axis;
-
+	Vec3Df dimensions = bmax - bmin;
 	if (dimensions[0] > std::max(dimensions[1], dimensions[2])) {
 		axis = 0;
 	} else if (dimensions[1] > std::max(dimensions[0], dimensions[2])) {
@@ -106,14 +96,14 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 
 std::vector<Vec3Df> BoundingBox::getVertices() const {
 	std::vector<Vec3Df> vertices;
-	vertices.push_back(origin);
-	vertices.push_back(Vec3Df(origin[0], origin[1], origin[2] + dimensions[2]));
-	vertices.push_back(Vec3Df(origin[0], origin[1] + dimensions[1], origin[2]));
-	vertices.push_back(Vec3Df(origin[0], origin[1] + dimensions[1], origin[2] + dimensions[2]));
-	vertices.push_back(Vec3Df(origin[0] + dimensions[0], origin[1], origin[2]));
-	vertices.push_back(Vec3Df(origin[0] + dimensions[0], origin[1], origin[2] + dimensions[2]));
-	vertices.push_back(Vec3Df(origin[0] + dimensions[0], origin[1] + dimensions[1], origin[2]));
-	vertices.push_back(origin + dimensions);
+	vertices.push_back(Vec3Df(bmin[0], bmin[1], bmin[2]));
+	vertices.push_back(Vec3Df(bmin[0], bmin[1], bmax[2]));
+	vertices.push_back(Vec3Df(bmin[0], bmax[1], bmin[2]));
+	vertices.push_back(Vec3Df(bmin[0], bmax[1], bmax[2]));
+	vertices.push_back(Vec3Df(bmax[0], bmin[1], bmin[2]));
+	vertices.push_back(Vec3Df(bmax[0], bmin[1], bmax[2]));
+	vertices.push_back(Vec3Df(bmax[0], bmax[1], bmin[2]));
+	vertices.push_back(Vec3Df(bmax[0], bmax[1], bmax[2]));
 	return vertices;
 }
 
@@ -226,16 +216,20 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 	}
 }
 
-bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
-	std::vector<Triangle> triangles = this->getBoundingTriangles();
-	const std::vector<Vec3Df>& vertices = this->getVertices();
-	for(int j = 0; j < triangles.size(); j++){
-		Vec3Df hit;
-		if (intersectionPoint(origin, dest, vertices, triangles[j], hit)) {
-			return true;
-		}
-	}
-	return false;
+bool BoundingBox::doesIntersect(Ray ray) {
+	Vec3Df t1 = (bmin - ray.origin) * ray.invdir;
+	Vec3Df t2 = (bmax - ray.origin) * ray.invdir;
+
+	float tmin = std::min(t1[0], t2[0]);
+	float tmax = std::max(t1[0], t2[0]);
+
+	tmin = std::max(tmin, std::min(t1[1], t2[1]));
+	tmax = std::min(tmax, std::max(t1[1], t2[1]));
+
+	tmin = std::max(tmin, std::min(t1[2], t2[2]));
+	tmax = std::min(tmax, std::max(t1[2], t2[2]));
+
+	return tmax > std::max(tmin, 0.0f);
 }
 
 BoundingBox &BoundingBox::operator=(const BoundingBox &other) {

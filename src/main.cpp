@@ -32,8 +32,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh
 Mesh MyMesh;
 
-unsigned int WindowSize_X = 1920;  // resolution X
-unsigned int WindowSize_Y = 1080;  // resolution Y
+unsigned int WindowSize_X = 800;// 1920;  // resolution X
+unsigned int WindowSize_Y = 800;// 1080;  // resolution Y
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -224,8 +224,10 @@ void keyboard(unsigned char key, int x, int y)
 				dest = yscale*(xscale*dest00 + (1 - xscale)*dest10) +
 					(1 - yscale)*(xscale*dest01 + (1 - xscale)*dest11);
 
+				Ray ray = Ray(origin, dest);
+
 				//launch raytracing for the given ray.
-				Vec3Df rgb = performRayTracing(origin, dest);
+				Vec3Df rgb = performRayTracing(ray);
 
 				//store the result in an image
 				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
@@ -250,5 +252,5 @@ void keyboard(unsigned char key, int x, int y)
 	Vec3Df testRayOrigin, testRayDestination;
 	produceRay(x, y, &testRayOrigin, &testRayDestination);
 
-	yourKeyboardFunc(key, x, y, testRayOrigin, testRayDestination);
+	yourKeyboardFunc(key, x, y, Ray(testRayOrigin, testRayDestination));
 }
