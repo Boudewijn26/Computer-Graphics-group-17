@@ -3,10 +3,10 @@
 #include <vector>
 #include "mesh.h"
 #include <utility>
-#include "BoxesTree.h"
+#include "BoundingTree.h"
 #include "raytracing.h"
 
-class BoxesTree;
+class BoundingTree;
 struct Ray;
 
 class BoundingBox {
@@ -23,15 +23,13 @@ public:
 	std::vector<const Triangle*>& getTriangles();
 
 	std::vector<BoundingBox> split(int threshold);
-	BoxesTree* splitToTree(int threshold);
+	BoundingTree* splitToTree(int threshold);
 	bool doesIntersect(Ray ray);
 
 	BoundingBox &operator=(const BoundingBox &other);
 
 private:
 	void init(std::vector<Vertex> vertices, std::vector<const Triangle*> triangles);
-	std::pair<BoundingBox, BoundingBox> doSplit();
-	void split(std::vector<BoundingBox> &boxes, int threshold);
 
 	const std::vector<Vertex>& vertices;
 	std::vector<const Triangle*> triangles;

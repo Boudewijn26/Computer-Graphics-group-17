@@ -12,14 +12,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="BoxesTree.cpp" />
+    <ClCompile Include="BoundingTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="raytracing.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="BoxesTree.h" />
+    <ClInclude Include="BoundingTree.h" />
     <ClInclude Include="imageWriter.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="mesh.h" />
