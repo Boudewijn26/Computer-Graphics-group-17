@@ -47,7 +47,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/cube.obj", true);
+    MyMesh.loadMesh("models/rgbcubes.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -137,7 +137,7 @@ Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material,
 	normal.normalize();
 	lightPos.normalize();
 
-    Vec3Df viewVector = (vertexPos - lightPos); // Get the view vector
+    Vec3Df viewVector = (MyCameraPosition - vertexPos); // Get the view vector
     viewVector.normalize(); // And normalize it
 
     Vec3Df lightVector = (lightPos - vertexPos); // Get the light vector (opposite direction of viewvector.
@@ -175,8 +175,7 @@ Vec3Df shade(Intersection intersection, int level) {
 
 	/* Start of shading block */
     if (material.has_Ka()) {
-//        result += material.Ka();
-        //TODO This makes it white ALWAYS, unsure why
+		result += material.Ka();
     }
 
     if (material.has_Kd()) {
@@ -216,31 +215,41 @@ std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices) {
 }
 
 bool intersectionPoint(Ray ray, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
-	Vec3Df o = ray.origin;
-	Vec3Df q = ray.dest - o;
+	// Based on Moller-Trumbore intersection algorithm
+	Vec3Df e0 = vertices[triangle.v[1]] - vertices[triangle.v[0]];
+	Vec3Df e1 = vertices[triangle.v[2]] - vertices[triangle.v[0]];
 
-	Vertex va = vertices[triangle.v[0]];
-	Vertex vb = vertices[triangle.v[1]];
-	Vertex vc = vertices[triangle.v[2]];
+	Vec3Df direction = ray.dest - ray.origin;
+	direction.normalize();
 
-	Vec3Df a = va.p - o;
-	Vec3Df b = vb.p - o;
-	Vec3Df c = vc.p - o;
+	Vec3Df p = Vec3Df::crossProduct(direction, e1);
 
-	Vec3Df cq = Vec3Df::crossProduct(q, c);
+	float det = Vec3Df::dotProduct(e0, p);
 
-	float x = Vec3Df::dotProduct(b, cq);
-	if (x < FLT_EPSILON) return false;
-	float y = -Vec3Df::dotProduct(a, cq);
-	if (y < FLT_EPSILON) return false;
-	float z = Vec3Df::dotProduct(q, Vec3Df::crossProduct(a, b));
-	if (z < FLT_EPSILON) return false;
+	if (fabs(det) < 0.0000001) {
+		return false;
+	}
+	float invDet = 1.f / det;
 
-	float d = 1.0f / (x + y + z);
+	Vec3Df t = ray.origin - vertices[triangle.v[0]];
 
-	result = Vec3Df(x*d, y*d, z*d);
+	float u = Vec3Df::dotProduct(t, p) * invDet;
 
-	return true;
+	if (u < 0 || u > 1) {
+		return false;
+	}
+
+	Vec3Df q = Vec3Df::crossProduct(t, e0);
+
+	float v = Vec3Df::dotProduct(direction, q) * invDet;
+
+	if (v < 0 || u + v > 1) {
+		return false;
+	}
+
+	float a = Vec3Df::dotProduct(e1, q) * invDet;
+	result = a * direction + ray.origin;
+	return a > 0.0000001;
 }
 
 void yourDebugDraw()
