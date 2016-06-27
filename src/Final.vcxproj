@@ -11,25 +11,27 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="BoundingTree.cpp" />
+    <ClCompile Include="BoundingStructure.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="raytracing.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BoundingBox.h" />
-    <ClInclude Include="BoundingTree.h" />
+    <ClInclude Include="BoundingStructure.h" />
     <ClInclude Include="imageWriter.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="raytracing.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="traqueboule.h" />
     <ClInclude Include="Vec3D.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Final.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F0520289-83DC-4498-85E5-52FAE08D7054}</ProjectGuid>
