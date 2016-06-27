@@ -454,21 +454,36 @@ Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
 	return res;
 }
 
-Vec3Df intersectionWithSphere(const Vec3Df & rayOrigin, const Vec3Df & rayDest, const float & radius)
+bool intersectionWithSphere(const Vec3Df & rayOrigin, const Vec3Df & rayDir, const Vec3Df sphereOrigin, const float & radius)
 {
-	Vec3Df p1 = rayOrigin;
-	Vec3Df p2 = rayDest;
+	float a = rayOrigin[0] - sphereOrigin[0];
+	float b = rayOrigin[1] - sphereOrigin[1];
+	float c = rayOrigin[2] - sphereOrigin[2];
 
-	float A = p2[0] - p1[0];
-	float B = p2[1] - p1[1];
-	float C = p2[2] - p1[2];
+	float A = (rayDir[0] * rayDir[0]) + (rayDir[1] * rayDir[1]) + (rayDir[2] * rayDir[2]);
+	float B = 2 * ((rayDir[0] * a) + (rayDir[1] * b) + (rayDir[2] * c));
+	float C = (a*a) + (b*b) + (c*c) - (radius*radius);
+	
+	float discriminant = (B*B) - (4 * A*C);
+	if (discriminant >= 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
 
-	float a = (A*A) + (B*B) + (C*C);
-	float b = 2 * ((A*p1[0]) + (B*p1[1]) + (C*p1[2]));
-	float c = (p1[0] * p1[0]) + (p1[1] * p1[1]) + (p1[2] * p1[2]) - (radius*radius);
-
-	float t = (-b + sqrtf((b*b) - (4 * a*c))) / (2 * a);
-
-	Vec3Df res = p1 + t*(p2 - p1);
-	return res;
+	/*
+	Vec3Df intersectionP0;
+	Vec3Df intersectionP1;
+	float t0 = (-B + sqrtf(discriminant)) / (2 * A);
+	float t1 = (-B - sqrtf(discriminant)) / (2 * A);
+	
+	//If the ray has one intersection point the two intersection points are the same
+	//If the ray has two intersection points the two intersection points are different
+	//If the ray has no intersection points the intersection points are null;
+	if (discriminant >= 0) {
+		intersectionP0 = rayOrigin + t0*(rayDir - rayOrigin);
+		intersectionP1 = rayOrigin + t1*(rayDir - rayOrigin);
+	}
+	*/
 }
