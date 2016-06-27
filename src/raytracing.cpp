@@ -19,7 +19,6 @@ using namespace std;
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-Vec3Df sunVector;
 rgb sunColor;
 
 float pitchAngle = 0;
@@ -33,6 +32,10 @@ vector<Vec3Df> meshPoints;
 // Specifies the distance of the sun from the origin
 // This is usefull if the sun is drawn inside objects in the debug view
 float sunDist = 4;
+
+bool sunMode;
+
+Vec3Df sunVector;
 
 void drawBox(BoundingBox box);
 
@@ -54,14 +57,16 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/rgbcubes.obj", true);
+    MyMesh.loadMesh("models/scene.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 
-    calculateSun();
+	sunMode = false;
+
+	MyLightPositions.push_back(MyCameraPosition);
 
     BoundingBox main = BoundingBox(MyMesh);
 	BoundingBox* mainTree = new BoundingBox(main);
@@ -141,12 +146,17 @@ Vec3Df diffuse(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Ve
     Vec3Df lightVector = (lightPos - vertexPos); // Get the light position relative from the vertex position
     lightVector.normalize(); // And normalize it
 
-	// Calculate the material colors with the sun color.
-    Vec3Df materialWithSun = Vec3Df(
-			(float) (sunColor.r * material->Kd().p[0]),
-			(float) (sunColor.g * material->Kd().p[1]),
-			(float) (sunColor.b * material->Kd().p[2])
-	);
+	Vec3Df materialWithSun;
+	if (sunMode) {
+		// Calculate the material colors with the sun color.
+		materialWithSun = Vec3Df(
+				(float) (sunColor.r * material->Kd().p[0]),
+				(float) (sunColor.g * material->Kd().p[1]),
+				(float) (sunColor.b * material->Kd().p[2])
+		);
+	} else {
+		materialWithSun = material->Kd();
+	}
 
     // Calculate the diffusion (including color)
     diffuse += materialWithSun * fmax(Vec3Df::dotProduct(normal, lightPos), 0.0f);
@@ -172,11 +182,17 @@ Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material,
     float specTerm = max(Vec3Df::dotProduct(halfwayVector, normal), 0.0f);
     specTerm = pow(specTerm, material->Ns());
 
-	Vec3Df materialWithSun = Vec3Df(
-			(float) (sunColor.r * material->Ks().p[0]),
-			(float) (sunColor.g * material->Ks().p[1]),
-			(float) (sunColor.b * material->Ks().p[2])
-	);
+	Vec3Df materialWithSun;
+	if (sunMode) {
+		// Calculate the material colors with the sun color.
+		materialWithSun = Vec3Df(
+				(float) (sunColor.r * material->Ks().p[0]),
+				(float) (sunColor.g * material->Ks().p[1]),
+				(float) (sunColor.b * material->Ks().p[2])
+		);
+	} else {
+		materialWithSun = material->Kd();
+	}
 
     specularity += materialWithSun * specTerm;
 
@@ -195,19 +211,23 @@ Vec3Df shade(Intersection intersection, int level) {
 
 	Material material = getMat(intersection.index);
 
-	/* Start of shading block */
-    if (material.has_Ka()) {
-		result += material.Ka();
-    }
+	for (unsigned int i = 0; i < MyLightPositions.size(); i++) {
+		Vec3Df L = MyLightPositions[i];
 
-    if (material.has_Kd()) {
-		result += diffuse(intersection.intersect, intersection.normal, &material, sunVector);
-	}
+		/* Start of shading block */
+		if (material.has_Ka()) {
+			result += material.Ka();
+		}
 
-	if (material.has_Ks()) {
-		result += blinnPhong(intersection.intersect, intersection.normal, &material, sunVector);
+		if (material.has_Kd()) {
+			result += diffuse(intersection.intersect, intersection.normal, &material, L);
+		}
+
+		if (material.has_Ks()) {
+			result += blinnPhong(intersection.intersect, intersection.normal, &material, L);
+		}
+		/* End of shading block */
 	}
-    /* End of shading block */
 
   /*  if(level<2) // && reflects
     {
@@ -290,15 +310,17 @@ bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const vector<Ve
 
 void yourDebugDraw()
 {
-	float lightPosition[4] = {sunVector[0], sunVector[1], sunVector[2], 0};
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	rgb sunColor = sunVectorToRgb(sunVector);
+	if (sunMode) {
+		float lightPosition[4] = {sunVector[0], sunVector[1], sunVector[2], 0};
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+		rgb sunColor = sunVectorToRgb(sunVector);
 
-	float lightColor[4] = {sunColor.r, sunColor.g, sunColor.b, 0.5};
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+		float lightColor[4] = {sunColor.r, sunColor.g, sunColor.b, 0.5};
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
 
-	float specularColor[4] = {1, 1, 1, 0.5};
-	glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+		float specularColor[4] = {1, 1, 1, 0.5};
+		glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+	}
 
 	//draw open gl debug stuff
 	//this function is called every frame
@@ -435,6 +457,10 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	} else if (t == 'd') {
 		yawAngle -= ANGLE_STEP;
         calculateSun();
+	} else if (t == 'S') {
+		//Toggle sun mode or regular light mode
+		sunMode = !sunMode;
+		calculateSun();
 	}
 	//...
 
