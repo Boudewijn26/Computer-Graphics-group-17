@@ -252,23 +252,41 @@ vector<Vec3Df> getVerticePoints(const vector<Vertex> &vertices) {
 }
 
 bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result) {
-	Vec3Df q = dest - origin;
-	Vec3Df a = vertices[triangle.v[0]] - origin;
-	Vec3Df b = vertices[triangle.v[1]] - origin;
-	Vec3Df c = vertices[triangle.v[2]] - origin;
+	// Based on Moller-Trumbore intersection algorithm
+	Vec3Df e0 = vertices[triangle.v[1]] - vertices[triangle.v[0]];
+	Vec3Df e1 = vertices[triangle.v[2]] - vertices[triangle.v[0]];
 
-	float u = Vec3Df::dotProduct(b, Vec3Df::crossProduct(q, c));
-	if (u < FLT_EPSILON) return false;
-	float v = -Vec3Df::dotProduct(a, Vec3Df::crossProduct(q, c));
-	if (v < FLT_EPSILON) return false;
-	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(b, a));
-	if (w < FLT_EPSILON) return false;
+	Vec3Df direction = dest - origin;
+	direction.normalize();
 
-	float d = 1.0f / (u + v + w);
+	Vec3Df p = Vec3Df::crossProduct(direction, e1);
 
-	result = Vec3Df(u*d, v*d, w*d);
+	float det = Vec3Df::dotProduct(e0, p);
 
-	return true;
+	if (fabs(det) < 0.0000001) {
+		return false;
+	}
+	float invDet = 1.f / det;
+
+	Vec3Df t = origin - vertices[triangle.v[0]];
+
+	float u = Vec3Df::dotProduct(t, p) * invDet;
+
+	if (u < 0 || u > 1) {
+		return false;
+	}
+
+	Vec3Df q = Vec3Df::crossProduct(t, e0);
+
+	float v = Vec3Df::dotProduct(direction, q) * invDet;
+
+	if (v < 0 || u + v > 1) {
+		return false;
+	}
+
+	float a = Vec3Df::dotProduct(e1, q) * invDet;
+	result = a * direction + origin;
+	return a > 0.0000001;
 }
 
 void yourDebugDraw()
