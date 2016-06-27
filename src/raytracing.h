@@ -4,6 +4,7 @@
 #include "mesh.h"
 #include "BoundingBox.h"
 #include "hsv.h"
+#include "float.h"
 #include <cfloat>
 
 //Welcome to your MAIN PROJECT...
@@ -31,6 +32,7 @@ struct Intersection {
 	float distance = FLT_MAX;
 	int index = -1;
 	Vec3Df intersect;
+	Vec3Df normal;
 };
 
 //your main function to rewrite
