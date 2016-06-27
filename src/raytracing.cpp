@@ -27,7 +27,6 @@ float yawAngle = 0;
 BoundingBox box = BoundingBox();
 BoxesTree* tree;
 
-vector<BoundingBox> boxes;
 vector<Vec3Df> meshPoints;
 
 // Specifies the distance of the sun from the origin
@@ -182,7 +181,7 @@ Vec3Df shade(Intersection intersection, int level) {
 	Vec3Df refr = Vec3Df(0,0,0);
 	Vec3Df result = Vec3Df(0,0,0);
 
-	Material material = getMat(MyMesh.triangleMaterials.at(intersection.index));
+	Material material = getMat(intersection.index);
 
 	/* Start of shading block */
     if (material.has_Ka()) {
@@ -293,10 +292,7 @@ void yourDebugDraw()
 	//the color to white, it will be reset to the previous
 	//state after the pop.
 
-	for (vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
-		BoundingBox box = *it;
-		drawBox(box);
-	}
+
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
