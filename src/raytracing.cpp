@@ -9,6 +9,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "raytracing.h"
+#include "refraction.h"
 
 using namespace std;
 
@@ -54,7 +55,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/rgbcubes.obj", true);
+    MyMesh.loadMesh("repo/models/gaarding.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -194,10 +195,10 @@ Vec3Df shade(Intersection intersection, int level) {
 	Vec3Df result = Vec3Df(0,0,0);
 
 	Material material = getMat(intersection.index);
-
+	
 	/* Start of shading block */
     if (material.has_Ka()) {
-		result += material.Ka();
+	//	result += material.Ka();
     }
 
     if (material.has_Kd()) {
@@ -209,17 +210,16 @@ Vec3Df shade(Intersection intersection, int level) {
 	}
     /* End of shading block */
 
-  /*  if(level<2) // && reflects
-    {
-        //calculate reflection vector
-       refl = trace(hit, Vec3Df(0,0,0)reflection, level +1);
-    }
-
-    else if(level<2) // && refracts
+    if(level<2 && material.Tr() < 1.0f) // && reflects
     {
         //calculate refraction vector
-       refr = trace(hit, Vec3Df(0,0,0)refraction, level+1);
-    } */
+		result += refraction(intersection.intersect, intersection.normal, 1.0, 1.0);
+    }
+	else if(level<2)
+    {
+        //calculate reflection vector
+		result += reflection(intersection.intersect, intersection.normal);
+    }
 
 	if (result.p[0] > 1) {
 		result.p[0] = 1;
