@@ -228,16 +228,45 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 	}
 }
 
-bool BoundingBox::doesIntersect(Vec3Df origin, Vec3Df dest) {
-	std::vector<Triangle> triangles = this->getBoundingTriangles();
-	const std::vector<Vec3Df>& vertices = this->getVertices();
-	for(int j = 0; j < triangles.size(); j++){
-		Vec3Df hit;
-		if (intersectionPoint(origin, dest, vertices, triangles[j], hit)) {
-			return true;
-		}
-	}
-	return false;
+bool BoundingBox::doesIntersect(Vec3Df rayOrigin, Vec3Df dest) {
+	// After http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
+	Vec3Df min = origin;
+	Vec3Df max = origin + dimensions;
+	Vec3Df direction = dest - rayOrigin;
+	float tmin = (min[0] - rayOrigin[0]) / direction[0];
+	float tmax = (max[0] - rayOrigin[0]) / direction[0];
+
+	if (tmin > tmax) std::swap(tmin, tmax);
+
+	float tymin = (min[1] - rayOrigin[1]) / direction[1];
+	float tymax = (max[1] - rayOrigin[1]) / direction[1];
+
+	if (tymin > tymax) std::swap(tymin, tymax);
+
+	if ((tmin > tymax) || (tymin > tmax))
+		return false;
+
+	if (tymin > tmin)
+		tmin = tymin;
+
+	if (tymax < tmax)
+		tmax = tymax;
+
+	float tzmin = (min[2] - rayOrigin[2]) / direction[2];
+	float tzmax = (max[2] - rayOrigin[2]) / direction[2];
+
+	if (tzmin > tzmax) std::swap(tzmin, tzmax);
+
+	if ((tmin > tzmax) || (tzmin > tmax))
+		return false;
+
+	if (tzmin > tmin)
+		tmin = tzmin;
+
+	if (tzmax < tmax)
+		tmax = tzmax;
+
+	return true;
 }
 
 BoundingBox &BoundingBox::operator=(const BoundingBox &other) {
