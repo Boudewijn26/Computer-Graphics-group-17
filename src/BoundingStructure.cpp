@@ -28,7 +28,10 @@ BoundingBox * split(BoundingBox * boundingBox, int threshold) {
 			break; }
 		case TRIANGLE: {
 			std::vector<BoundingBox *> ttriangles = triangleSplit(boundingBox, threshold);
+			std::cout << "Bounding Box 1" << std::endl;
+			if (ttriangles.size() == 1) return ttriangles[0];
 			BoundingBox * tr = &BoundingBox(ttriangles);
+			std::cout << "Bounding Box more" << std::endl;
 			if (ttriangles.size() > threshold) return split(tr, threshold);
 			return tr;
 			break; }
@@ -57,6 +60,7 @@ std::vector<BoundingBox *> triangleSplit(BoundingBox * boundingBox, int threshol
 	std::vector<Triangle *> triangles = (*boundingBox).triangles;
 
 	if (triangles.size() <= threshold) {
+		std::cout << "TRIANGLESPLIT CALLED ON SMALL ENOUGH BOUNDING BOX"  << std::endl;
 		r.push_back(boundingBox);
 		return r;
 	}
@@ -108,7 +112,6 @@ std::vector<BoundingBox *> boxSplit(BoundingBox * boundingBox, int threshold) {
 	std::vector<BoundingBox *> r;
 
 	if ((*boundingBox).type != BOX) {
-		std::cout << "ERROR; TRIANGLESPLIT CALLED ON BOUNDING BOX WITH TYPE " << (*boundingBox).type << std::endl;
 		r.push_back(boundingBox);
 		return r;
 	}
@@ -137,24 +140,11 @@ std::vector<BoundingBox *> boxSplit(BoundingBox * boundingBox, int threshold) {
 	float splitPoint = ((*boundingBox).bmax[axis] + (*boundingBox).bmin[axis]) / 2.0f;
 
 	for (BoundingBox * box : boxes) {
-		bool inFirst = false;
-		bool inSecond = false;
-
 		if ((*box).bmin[axis] <= splitPoint) {
 			firstSet.push_back(box);
-			inFirst = true;
 		}
-		if (!inFirst && (*box).bmax[axis] <= splitPoint) {
-			firstSet.push_back(box);
-			inFirst = true;
-		}
-		if ((*box).bmin[axis] >= splitPoint) {
+		if ((*box).bmax[axis] >= splitPoint) {
 			secondSet.push_back(box);
-			inSecond = true;
-		}
-		if (!inSecond && (*box).bmax[axis] >= splitPoint) {
-			secondSet.push_back(box);
-			inSecond = true;
 		}
 	}
 
@@ -167,21 +157,19 @@ std::vector<BoundingBox *> boxSplit(BoundingBox * boundingBox, int threshold) {
 	firstSplit.insert(firstSplit.begin(), secondSplit.begin(), secondSplit.end());
 
 	return firstSplit;
-
-
 }
 
 std::vector<Triangle *> intersectingTriangles(BoundingBox * boundingBox, Ray ray) {
 	std::stack<BoundingBox *> boundingBoxes;
 	std::vector<Triangle *> r;
 	boundingBoxes.push(boundingBox);
-	while (boundingBoxes.size() > 0) {
+	while (!boundingBoxes.empty()) {
 		BoundingBox * box = boundingBoxes.top();
 		boundingBoxes.pop();
 		switch ((*box).type) {
 		case NONE: {
 			std::cout << "CRITICAL ERROR; INTERSECTION CALLED ON BOUNDING BOX WITH TYPE NONE" << std::endl;
-			exit(EXIT_FAILURE);
+			//exit(EXIT_FAILURE);
 			break; }
 		case TRIANGLE: {
 			for (Triangle * triangle : (*box).triangles) {
@@ -194,10 +182,14 @@ std::vector<Triangle *> intersectingTriangles(BoundingBox * boundingBox, Ray ray
 			}
 			break; }
 		default: {
-			std::cout << "CRITICAL ERROR; BOUNDING BOX TYPE " << (*boundingBox).type << " IS UNKNOWN" << std::endl;
-			exit(EXIT_FAILURE);
+			std::cout << "CRITICAL ERROR; BOUNDING BOX TYPE " << (*box).type << " IS UNKNOWN" << std::endl;
+			std::cout << "Triangles: " << (*box).triangles.size() << std::endl;
+			std::cout << "Boxes: " << (*box).boxes.size() << std::endl;
+			//exit(EXIT_FAILURE);
 			break; }
 		}
+		std::cout << "Boxes left; " << boundingBoxes.size() << std::endl;
+		std::cout << "Stack empty; " << boundingBoxes.empty() << std::endl;
 	}
 	return r;
 }

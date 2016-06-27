@@ -55,8 +55,7 @@ void init()
 	//here, we set it to the current location of the camera
 
     calculateSun();
-	mainBox = &BoundingBox(MyMesh.triangles);
-	mainBox = split(mainBox, 500);
+	mainBox = split(&BoundingBox(MyMesh.triangles), 500);
 	
 }
 

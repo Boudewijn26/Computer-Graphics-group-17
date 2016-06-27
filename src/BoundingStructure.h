@@ -12,12 +12,11 @@ enum BoundingType { TRIANGLE, BOX, NONE };
 struct BoundingBox {
 	std::vector<Triangle *> triangles;
 	std::vector<BoundingBox *> boxes;
-	BoundingType type;
+	BoundingType type = NONE;
 	Vec3Df bmin;
 	Vec3Df bmax;
 
 	BoundingBox(Vec3Df min, Vec3Df max) {
-		type = NONE;
 		bmin = min;
 		bmax = max;
 	}
