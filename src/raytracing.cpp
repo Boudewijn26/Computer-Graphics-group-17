@@ -54,7 +54,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("models/rgbcubes.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -92,14 +92,14 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 }
 
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
-	Intersection intersection;
+	Intersection intersection = Intersection();
 	Vec3Df intersect;
 	std::vector<BoundingBox*> hits;
 	bool foundBox = tree->findBox(origin, dest, hits);
 	if (!foundBox) {
 		return false;
 	}
-	std::vector<int> &triangles = std::vector<int>();
+	vector<int> triangles = vector<int>();
 
 	for (std::vector<BoundingBox*>::iterator it = hits.begin(); it != hits.end(); ++it) {
 		std::vector<int> &curTriangles = (*it)->getTriangles();
@@ -109,7 +109,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 
 	std::vector<int>::iterator it;
 	it = std::unique(triangles.begin(), triangles.end());
-	triangles.resize(std::distance(triangles.begin(), it));
+	triangles.resize((unsigned long) distance(triangles.begin(), it));
 
 	for (int i=0; i < triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[triangles[i]];
@@ -159,7 +159,7 @@ Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material,
 	normal.normalize();
 	lightPos.normalize();
 
-    Vec3Df viewVector = (vertexPos - lightPos); // Get the view vector
+    Vec3Df viewVector = (MyCameraPosition - vertexPos); // Get the view vector
     viewVector.normalize(); // And normalize it
 
     Vec3Df lightVector = (lightPos - vertexPos); // Get the light vector (opposite direction of viewvector.
@@ -197,8 +197,7 @@ Vec3Df shade(Intersection intersection, int level) {
 
 	/* Start of shading block */
     if (material.has_Ka()) {
-//        result += material.Ka();
-        //TODO This makes it white ALWAYS, unsure why
+		result += material.Ka();
     }
 
     if (material.has_Kd()) {
