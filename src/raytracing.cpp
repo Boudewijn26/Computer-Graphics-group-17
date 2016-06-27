@@ -5,6 +5,7 @@
 #include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
+#include <algorithm>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "raytracing.h"
@@ -93,13 +94,24 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
-	BoundingBox* box = nullptr;
-	bool foundBox = tree->findBox(origin, dest, box);
+	std::vector<BoundingBox*> hits;
+	bool foundBox = tree->findBox(origin, dest, hits);
 	if (!foundBox) {
 		return false;
 	}
-	vector<int> &triangles = box->getTriangles();
-	for(int i=0; i < triangles.size(); ++i) {
+	std::vector<int> &triangles = std::vector<int>();
+
+	for (std::vector<BoundingBox*>::iterator it = hits.begin(); it != hits.end(); ++it) {
+		std::vector<int> &curTriangles = (*it)->getTriangles();
+		triangles.reserve(triangles.size() + curTriangles.size());
+		triangles.insert(triangles.end(), curTriangles.begin(), curTriangles.end());
+	}
+
+	std::vector<int>::iterator it;
+	it = std::unique(triangles.begin(), triangles.end());
+	triangles.resize(std::distance(triangles.begin(), it));
+
+	for (int i=0; i < triangles.size(); ++i) {
         Triangle triangle = MyMesh.triangles[triangles[i]];
         if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
 			float distance = (intersect - origin).getLength();
