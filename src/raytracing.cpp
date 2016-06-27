@@ -19,7 +19,6 @@ using namespace std;
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-Vec3Df sunVector;
 rgb sunColor;
 
 float pitchAngle = 0;
@@ -33,6 +32,10 @@ vector<Vec3Df> meshPoints;
 // Specifies the distance of the sun from the origin
 // This is usefull if the sun is drawn inside objects in the debug view
 float sunDist = 4;
+
+bool sunMode;
+
+Vec3Df sunVector;
 
 void drawBox(BoundingBox box);
 
@@ -54,14 +57,16 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/rgbcubes.obj", true);
+    MyMesh.loadMesh("models/scene.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 
-    calculateSun();
+	sunMode = false;
+
+	MyLightPositions.push_back(MyCameraPosition);
 
     BoundingBox main = BoundingBox(MyMesh);
 	BoundingBox* mainTree = new BoundingBox(main);
@@ -141,12 +146,17 @@ Vec3Df diffuse(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Ve
     Vec3Df lightVector = (lightPos - vertexPos); // Get the light position relative from the vertex position
     lightVector.normalize(); // And normalize it
 
-	// Calculate the material colors with the sun color.
-    Vec3Df materialWithSun = Vec3Df(
-			(float) (sunColor.r * material->Kd().p[0]),
-			(float) (sunColor.g * material->Kd().p[1]),
-			(float) (sunColor.b * material->Kd().p[2])
-	);
+	Vec3Df materialWithSun;
+	if (sunMode) {
+		// Calculate the material colors with the sun color.
+		materialWithSun = Vec3Df(
+				(float) (sunColor.r * material->Kd().p[0]),
+				(float) (sunColor.g * material->Kd().p[1]),
+				(float) (sunColor.b * material->Kd().p[2])
+		);
+	} else {
+		materialWithSun = material->Kd();
+	}
 
     // Calculate the diffusion (including color)
     diffuse += materialWithSun * fmax(Vec3Df::dotProduct(normal, lightPos), 0.0f);
@@ -172,11 +182,17 @@ Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material,
     float specTerm = max(Vec3Df::dotProduct(halfwayVector, normal), 0.0f);
     specTerm = pow(specTerm, material->Ns());
 
-	Vec3Df materialWithSun = Vec3Df(
-			(float) (sunColor.r * material->Ks().p[0]),
-			(float) (sunColor.g * material->Ks().p[1]),
-			(float) (sunColor.b * material->Ks().p[2])
-	);
+	Vec3Df materialWithSun;
+	if (sunMode) {
+		// Calculate the material colors with the sun color.
+		materialWithSun = Vec3Df(
+				(float) (sunColor.r * material->Ks().p[0]),
+				(float) (sunColor.g * material->Ks().p[1]),
+				(float) (sunColor.b * material->Ks().p[2])
+		);
+	} else {
+		materialWithSun = material->Kd();
+	}
 
     specularity += materialWithSun * specTerm;
 
@@ -195,19 +211,23 @@ Vec3Df shade(Intersection intersection, int level) {
 
 	Material material = getMat(intersection.index);
 
-	/* Start of shading block */
-    if (material.has_Ka()) {
-		result += material.Ka();
-    }
+	for (unsigned int i = 0; i < MyLightPositions.size(); i++) {
+		Vec3Df L = MyLightPositions[i];
 
-    if (material.has_Kd()) {
-		result += diffuse(intersection.intersect, intersection.normal, &material, sunVector);
-	}
+		/* Start of shading block */
+		if (material.has_Ka()) {
+			result += material.Ka();
+		}
 
-	if (material.has_Ks()) {
-		result += blinnPhong(intersection.intersect, intersection.normal, &material, sunVector);
+		if (material.has_Kd()) {
+			result += diffuse(intersection.intersect, intersection.normal, &material, L);
+		}
+
+		if (material.has_Ks()) {
+			result += blinnPhong(intersection.intersect, intersection.normal, &material, L);
+		}
+		/* End of shading block */
 	}
-    /* End of shading block */
 
   /*  if(level<2) // && reflects
     {
@@ -290,15 +310,17 @@ bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const vector<Ve
 
 void yourDebugDraw()
 {
-	float lightPosition[4] = {sunVector[0], sunVector[1], sunVector[2], 0};
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	rgb sunColor = sunVectorToRgb(sunVector);
+	if (sunMode) {
+		float lightPosition[4] = {sunVector[0], sunVector[1], sunVector[2], 0};
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+		rgb sunColor = sunVectorToRgb(sunVector);
 
-	float lightColor[4] = {sunColor.r, sunColor.g, sunColor.b, 0.5};
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+		float lightColor[4] = {sunColor.r, sunColor.g, sunColor.b, 0.5};
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
 
-	float specularColor[4] = {1, 1, 1, 0.5};
-	glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+		float specularColor[4] = {1, 1, 1, 0.5};
+		glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+	}
 
 	//draw open gl debug stuff
 	//this function is called every frame
@@ -435,16 +457,18 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	} else if (t == 'd') {
 		yawAngle -= ANGLE_STEP;
         calculateSun();
+	} else if (t == 'S') {
+		//Toggle sun mode or regular light mode
+		sunMode = !sunMode;
+		calculateSun();
 	}
 	//...
 
 	cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<endl;
 }
 
-Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
+Vec3Df intersectionWithPlane(Vec3Df &dir, Vec3Df &origin, const Vec3Df &planeNormal, Vec3Df &planePoint)
 {
-	Vec3Df dir = testRayDestination;
-	Vec3Df origin = testRayOrigin;
 	dir.normalize();
 	origin.normalize();
 	planePoint.normalize();
@@ -454,21 +478,36 @@ Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
 	return res;
 }
 
-Vec3Df intersectionWithSphere(const Vec3Df & rayOrigin, const Vec3Df & rayDest, const float & radius)
+bool intersectionWithSphere(const Vec3Df &rayOrigin, const Vec3Df &rayDir, const Vec3Df &sphereOrigin, const float &radius)
 {
-	Vec3Df p1 = rayOrigin;
-	Vec3Df p2 = rayDest;
+	float a = rayOrigin[0] - sphereOrigin[0];
+	float b = rayOrigin[1] - sphereOrigin[1];
+	float c = rayOrigin[2] - sphereOrigin[2];
 
-	float A = p2[0] - p1[0];
-	float B = p2[1] - p1[1];
-	float C = p2[2] - p1[2];
+	float A = (rayDir[0] * rayDir[0]) + (rayDir[1] * rayDir[1]) + (rayDir[2] * rayDir[2]);
+	float B = 2 * ((rayDir[0] * a) + (rayDir[1] * b) + (rayDir[2] * c));
+	float C = (a*a) + (b*b) + (c*c) - (radius*radius);
+	
+	float discriminant = (B*B) - (4 * A*C);
+	if (discriminant >= 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
 
-	float a = (A*A) + (B*B) + (C*C);
-	float b = 2 * ((A*p1[0]) + (B*p1[1]) + (C*p1[2]));
-	float c = (p1[0] * p1[0]) + (p1[1] * p1[1]) + (p1[2] * p1[2]) - (radius*radius);
-
-	float t = (-b + sqrtf((b*b) - (4 * a*c))) / (2 * a);
-
-	Vec3Df res = p1 + t*(p2 - p1);
-	return res;
+	/*
+	Vec3Df intersectionP0;
+	Vec3Df intersectionP1;
+	float t0 = (-B + sqrtf(discriminant)) / (2 * A);
+	float t1 = (-B - sqrtf(discriminant)) / (2 * A);
+	
+	//If the ray has one intersection point the two intersection points are the same
+	//If the ray has two intersection points the two intersection points are different
+	//If the ray has no intersection points the intersection points are null;
+	if (discriminant >= 0) {
+		intersectionP0 = rayOrigin + t0*(rayDir - rayOrigin);
+		intersectionP1 = rayOrigin + t1*(rayDir - rayOrigin);
+	}
+	*/
 }

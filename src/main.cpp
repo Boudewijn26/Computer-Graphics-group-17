@@ -184,6 +184,12 @@ void keyboard(unsigned char key, int x, int y)
 	fflush(stdout);
 	switch (key)
 	{
+        case 'L':
+            MyLightPositions.push_back(getCameraPosition());
+            break;
+        case 'l':
+            MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
+            break;
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
