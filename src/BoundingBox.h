@@ -22,7 +22,7 @@ public:
 
 	std::vector<BoundingBox> split(int threshold);
 	BoxesTree* splitToTree(int threshold);
-	bool doesIntersect(Vec3Df origin, Vec3Df dest);
+	bool doesIntersect(const Vec3Df& origin, const Vec3Df& dest);
 
 	BoundingBox &operator=(const BoundingBox &other);
 

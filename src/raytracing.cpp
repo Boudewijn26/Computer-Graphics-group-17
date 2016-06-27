@@ -57,7 +57,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/scene.obj", true);
+    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source

@@ -45,6 +45,7 @@ Vec3Df shade(Intersection intersection, int level);
 std::vector<Vec3Df> getVerticePoints(const std::vector<Vertex> &vertices);
 
 bool intersectionPoint(const Vec3Df &origin, const Vec3Df &dest, const std::vector<Vec3Df> &vertices, const Triangle &triangle, Vec3Df& result);
+bool intersectionWithSphere(const Vec3Df &rayOrigin, const Vec3Df &rayDir, const Vec3Df &sphereOrigin, const float &radius);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();

@@ -228,11 +228,26 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 	}
 }
 
-bool BoundingBox::doesIntersect(Vec3Df rayOrigin, Vec3Df dest) {
+bool BoundingBox::doesIntersect(const Vec3Df& rayOrigin, const Vec3Df& dest) {
+	Vec3Df direction = dest - rayOrigin;
+
+	
+	/*
+	Unfortunately the sphere intersection appears to be a little too slow to compete with
+	the box intersection algorithm.
+	float maxRadius = std::max({ dimensions[0], dimensions[1], dimensions[2] });
+	float minRadius = std::min({ dimensions[0], dimensions[1], dimensions[2] });
+	Vec3Df sphereOrigin = origin + dimensions * 0.5;
+	if (!intersectionWithSphere(rayOrigin, direction, sphereOrigin, maxRadius)) {
+		return false;
+	}
+	else if (intersectionWithSphere(rayOrigin, direction, sphereOrigin, minRadius)) {
+		return true;
+	}*/
+
 	// After http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 	Vec3Df min = origin;
 	Vec3Df max = origin + dimensions;
-	Vec3Df direction = dest - rayOrigin;
 	float tmin = (min[0] - rayOrigin[0]) / direction[0];
 	float tmax = (max[0] - rayOrigin[0]) / direction[0];
 
