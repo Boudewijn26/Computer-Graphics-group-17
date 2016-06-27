@@ -1,25 +1,28 @@
+#pragma once
 #include "raytracing.h"
 #include <vector>
 #include <algorithm>
 
 struct Ray;
 
-enum Type { TRIANGLE, BOX, NONE };
+extern Mesh MyMesh;
+
+enum BoundingType { TRIANGLE, BOX, NONE };
 
 struct BoundingBox {
 	std::vector<Triangle *> triangles;
 	std::vector<BoundingBox *> boxes;
-	Type type = NONE;
+	BoundingType type;
 	Vec3Df bmin;
 	Vec3Df bmax;
 
-	BoundingBox(Vec3Df const min, Vec3Df const max) {
+	BoundingBox(Vec3Df min, Vec3Df max) {
 		type = NONE;
 		bmin = min;
 		bmax = max;
 	}
 
-	BoundingBox(std::vector<Triangle *> const boundingObjects) {
+	BoundingBox(std::vector<Triangle *> boundingObjects) {
 		type = TRIANGLE;
 		triangles = boundingObjects;
 
@@ -30,8 +33,8 @@ struct BoundingBox {
 			for (int i = 0; i < 3; i++) {
 				Vec3Df vertex = MyMesh.vertices[(*triangle).v[i]].p;
 				for (int j = 0; j < 3; j++) {
-					min[j] = std::min(min[j], vertex[0]);
-					max[j] = std::max(max[j], vertex[0]);
+					min[j] = (std::min)(min[j], vertex[0]);
+					max[j] = (std::max)(max[j], vertex[0]);
 				}
 			}
 		}
@@ -40,7 +43,34 @@ struct BoundingBox {
 		bmax = max;
 	}
 
-	BoundingBox(std::vector<BoundingBox *> const boundingObjects) {
+	BoundingBox(std::vector<Triangle> boundingObjects) {
+		std::vector<Triangle *> newBoundingObjects;
+		for (Triangle triangle : boundingObjects) {
+			newBoundingObjects.push_back(&triangle);
+		}
+		
+		type = TRIANGLE;
+		triangles = newBoundingObjects;
+
+		Vec3Df min = Vec3Df(FLT_MAX, FLT_MAX, FLT_MAX);
+		Vec3Df max = Vec3Df(FLT_MIN, FLT_MIN, FLT_MIN);
+
+		for (Triangle * triangle : triangles) {
+			for (int i = 0; i < 3; i++) {
+				Vec3Df vertex = MyMesh.vertices[(*triangle).v[i]].p;
+				for (int j = 0; j < 3; j++) {
+					min[j] = (std::min)(min[j], vertex[0]);
+					max[j] = (std::max)(max[j], vertex[0]);
+				}
+			}
+		}
+
+		bmin = min;
+		bmax = max;
+
+	}
+
+	BoundingBox(std::vector<BoundingBox *> boundingObjects) {
 		type = BOX;
 		boxes = boundingObjects;
 
@@ -49,8 +79,8 @@ struct BoundingBox {
 
 		for (BoundingBox * box : boxes) {
 			for (int i = 0; i < 3; i++) {
-				min[i] = std::min(min[i], (*box).bmin[i]);
-				max[i] = std::max(max[i], (*box).bmax[0]);
+				min[i] = (std::min)(min[i], (*box).bmin[i]);
+				max[i] = (std::max)(max[i], (*box).bmax[0]);
 			}
 		}
 
@@ -60,8 +90,10 @@ struct BoundingBox {
 
 };
 
-bool doesIntersect(BoundingBox const & boundingBox, Ray const ray);
+bool doesIntersect(BoundingBox * boundingBox, Ray ray);
 
-BoundingBox split(BoundingBox * boundingBox, int threshold);
+BoundingBox * split(BoundingBox * boundingBox, int threshold);
 std::vector<BoundingBox *> triangleSplit(BoundingBox * boundingBox, int threshold);
 std::vector<BoundingBox *> boxSplit(BoundingBox * boundingBox, int threshold);
+
+std::vector<Triangle *> intersectingTriangles(BoundingBox * boundingBox, Ray ray);

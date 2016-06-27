@@ -2,13 +2,12 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "BoxesTree.h"
 #include <GL/glut.h>
 #include <float.h>
+#include <algorithm>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "raytracing.h"
-
 
 //temporary variables
 //these are only used to illustrate
@@ -16,23 +15,27 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
+struct BoundingBox;
+
 Vec3Df sunVector;
 rgb sunColor;
 
 float pitchAngle = 0;
 float yawAngle = 0;
 
-BoundingBox box = BoundingBox();
-BoxesTree* tree;
-
-std::vector<BoundingBox> boxes;
 std::vector<Vec3Df> meshPoints;
 
-void drawBox(BoundingBox box);
+BoundingBox * mainBox;
+
+// Specifies the distance of the sun from the origin
+// This is usefull if the sun is drawn inside objects in the debug view
+float sunDist = 4;
 
 Vec3Df calculateSunVector();
 
 rgb sunVectorToRgb(Vec3Df sunVector);
+
+void calculateSun();
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -50,21 +53,32 @@ void init()
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
-	Vec3Df sunVector = calculateSunVector();
-	MyLightPositions.push_back(sunVector);
 
-	BoundingBox main = BoundingBox(MyMesh);
-	BoundingBox* mainTree = new BoundingBox(main);
-	tree = mainTree->splitToTree(500);
+    calculateSun();
+	mainBox = &BoundingBox(MyMesh.triangles);
+	mainBox = split(mainBox, 500);
+	
+}
+
+/**
+ * True if the vector is the zero vector
+ */
+bool isZero(Vec3Df v) {
+    return v[0] == 0 && v[1] == 0 && v[2] == 0;
+}
+
+void calculateSun() {
+    sunVector = calculateSunVector();
+    MyLightPositions.clear();
+    MyLightPositions.push_back(sunVector);
+    sunVector.normalize();
+    sunColor = sunVectorToRgb(sunVector);
 }
 
 //return the color of your pixel.
 Vec3Df performRayTracing(Ray ray)
 {
 	Vec3Df result;
-	sunVector = calculateSunVector();
-	sunVector.normalize();
-	sunColor = sunVectorToRgb(sunVector);
 	if (trace(ray, 0, result)) return result;
 	return Vec3Df(0, 0, 0);
 }
@@ -72,51 +86,108 @@ Vec3Df performRayTracing(Ray ray)
 bool trace(Ray ray, int level, Vec3Df& result) {
 	Intersection intersection;
 	Vec3Df intersect;
-	BoundingBox* box = nullptr;
-	bool foundBox = tree->findBox(ray, box);
-	if (!foundBox) {
-		return false;
-	}
-	std::vector<const Triangle*> &triangles = box->getTriangles();
-	for(int i=0; i < triangles.size(); ++i) {
-        Triangle triangle = *triangles[i];
-        if (intersectionPoint(ray, meshPoints, triangle, intersect)) {
+	
+	std::vector<Triangle *> triangles = intersectingTriangles(mainBox, ray);
+
+	for (Triangle * triangle : triangles) {
+        if (intersectionPoint(ray, meshPoints, (*triangle), intersect)) {
 			float distance = (intersect - ray.origin).getLength();
 			if (intersection.distance > distance) {
 				intersection.distance = distance;
-				intersection.index = i;
+				intersection.triangle = triangle;
 				intersection.intersect = intersect;
 				intersection.normal =
-					Vec3Df::crossProduct(MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p,
-										MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[0]].p);
+					Vec3Df::crossProduct(MyMesh.vertices[(*triangle).v[1]].p - MyMesh.vertices[(*triangle).v[0]].p,
+										MyMesh.vertices[(*triangle).v[2]].p - MyMesh.vertices[(*triangle).v[0]].p);
 				intersection.normal.normalize();
 			}
         }
     }
-	if (intersection.index == -1) return false;
+
+	if (intersection.distance == FLT_MAX) return false;
 
 	result = shade(intersection, level);
 
 	return true;
 }
 
+Vec3Df diffuse(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightPos) {
+	Vec3Df diffuse = Vec3Df(0,0,0);
+	normal.normalize();
+	lightPos.normalize();
+
+    Vec3Df lightVector = (lightPos - vertexPos); // Get the light position relative from the vertex position
+    lightVector.normalize(); // And normalize it
+
+	// Calculate the material colors with the sun color.
+    Vec3Df materialWithSun = Vec3Df(
+			(float) (sunColor.r * material->Kd().p[0]),
+			(float) (sunColor.g * material->Kd().p[1]),
+			(float) (sunColor.b * material->Kd().p[2])
+	);
+
+    // Calculate the diffusion (including color)
+    diffuse += materialWithSun * fmax(Vec3Df::dotProduct(normal, lightPos), 0.0f);
+
+	return diffuse;
+}
+
+Vec3Df blinnPhong(const Vec3Df & vertexPos, Vec3Df & normal, Material* material, Vec3Df lightPos) {
+	Vec3Df specularity = Vec3Df(0,0,0);
+	normal.normalize();
+	lightPos.normalize();
+
+    Vec3Df viewVector = (vertexPos - lightPos); // Get the view vector
+    viewVector.normalize(); // And normalize it
+
+    Vec3Df lightVector = (lightPos - vertexPos); // Get the light vector (opposite direction of viewvector.
+    lightVector.normalize(); // And normalize it
+
+    // Calculate the halfway vector
+    Vec3Df halfwayVector = viewVector + lightVector;
+    halfwayVector.normalize();
+
+    float specTerm = (std::max)(Vec3Df::dotProduct(halfwayVector, normal), 0.0f);
+    specTerm = pow(specTerm, material->Ns());
+
+	Vec3Df materialWithSun = Vec3Df(
+			(float) (sunColor.r * material->Ks().p[0]),
+			(float) (sunColor.g * material->Ks().p[1]),
+			(float) (sunColor.b * material->Ks().p[2])
+	);
+
+    specularity += materialWithSun * specTerm;
+
+	return specularity;
+}
+
+Material getMat(int index) {
+	int matIndex = MyMesh.triangleMaterials[index];
+	return MyMesh.materials[matIndex];
+}
+
 Vec3Df shade(Intersection intersection, int level) {
     Vec3Df refl = Vec3Df(0,0,0);
 	Vec3Df refr = Vec3Df(0,0,0);
-    Vec3Df directColor;
 	Vec3Df result = Vec3Df(0,0,0);
 
-	// Shading for sun
-	unsigned int mat = MyMesh.triangleMaterials.at(intersection.index);
-	directColor = MyMesh.materials.at(mat).Kd();
-	Vec3Df lightVec = (sunVector - intersection.intersect);
-	lightVec.normalize();
+	Material material = MyMesh.materials[MyMesh.triangleMaterials[intersection.triangle - &*MyMesh.triangles.begin()]];
 
-	directColor.p[0] = (float) fmin((directColor.p[0] * sunColor.r), 1.0);
-	directColor.p[1] = (float) fmin((directColor.p[1] * sunColor.g), 1.0);
-	directColor.p[2] = (float) fmin((directColor.p[2] * sunColor.b), 1.0);
+	/* Start of shading block */
+    if (material.has_Ka()) {
+//        result += material.Ka();
+        //TODO This makes it white ALWAYS, unsure why
+    }
 
-	result = directColor * fmax(Vec3Df::dotProduct(lightVec, intersection.normal), 0.0);
+    if (material.has_Kd()) {
+		result += diffuse(intersection.intersect, intersection.normal, &material, sunVector);
+	}
+
+	if (material.has_Ks()) {
+		result += blinnPhong(intersection.intersect, intersection.normal, &material, sunVector);
+	}
+    /* End of shading block */
+
   /*  if(level<2) // && reflects
     {
         //calculate reflection vector
@@ -129,24 +200,10 @@ Vec3Df shade(Intersection intersection, int level) {
        refr = trace(hit, Vec3Df(0,0,0)refraction, level+1);
     } */
 
-	if (result.p[0] > 1) {
-		result.p[0] = 1;
+	for (int i = 0; i < 3; i++) {
+		result.p[i] = max(0.0f, min(1.0f, result.p[i]));
 	}
-	if (result.p[1] > 1) {
-		result.p[1] = 1;
-	}
-	if (result.p[2] > 1) {
-		result.p[2] = 1;
-	}
-	if (result.p[0] < 0) {
-		result.p[0] = 0;
-	}
-	if (result.p[1] < 0) {
-		result.p[1] = 0;
-	}
-	if (result.p[2] < 0) {
-		result.p[2] = 0;
-	}
+
     return result;
 }
 
@@ -172,24 +229,22 @@ bool intersectionPoint(Ray ray, const std::vector<Vec3Df> &vertices, const Trian
 
 	Vec3Df cq = Vec3Df::crossProduct(q, c);
 
-	float u = Vec3Df::dotProduct(b, cq);
-	if (u < FLT_EPSILON) return false;
-	float v = -Vec3Df::dotProduct(a, cq);
-	if (v < FLT_EPSILON) return false;
-	float w = Vec3Df::dotProduct(q, Vec3Df::crossProduct(a, b));
-	if (w < FLT_EPSILON) return false;
+	float x = Vec3Df::dotProduct(b, cq);
+	if (x < FLT_EPSILON) return false;
+	float y = -Vec3Df::dotProduct(a, cq);
+	if (y < FLT_EPSILON) return false;
+	float z = Vec3Df::dotProduct(q, Vec3Df::crossProduct(a, b));
+	if (z < FLT_EPSILON) return false;
 
-	float d = 1.0f / (u + v + w);
+	float d = 1.0f / (x + y + z);
 
-	result = Vec3Df(u*d, v*d, w*d);
+	result = Vec3Df(x*d, y*d, z*d);
 
 	return true;
 }
 
 void yourDebugDraw()
 {
-	Vec3Df sunVector = calculateSunVector();
-
 	float lightPosition[4] = {sunVector[0], sunVector[1], sunVector[2], 0};
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	rgb sunColor = sunVectorToRgb(sunVector);
@@ -221,10 +276,7 @@ void yourDebugDraw()
 	//the color to white, it will be reset to the previous
 	//state after the pop.
 
-	for (std::vector<BoundingBox>::iterator it = boxes.begin(); it != boxes.end(); ++it) {
-		BoundingBox box = *it;
-		drawBox(box);
-	}
+
 	//as an example: we draw the test ray, which is set by the keyboard function
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
@@ -248,21 +300,6 @@ void yourDebugDraw()
 	////triangulated sphere is nice for the preview
 }
 
-void drawBox(BoundingBox box) {
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glBegin(GL_TRIANGLES);
-	glColor3f(1, 1, 1);
-	std::vector<Vec3Df> boxVertices = box.getVertices();
-	std::vector<unsigned int> boxIndices = box.getDrawingIndices();
-	for(std::vector<unsigned int>::iterator it = boxIndices.begin(); it != boxIndices.end(); ++it) {
-		int index = *it;
-		Vec3Df vertex = boxVertices[index];
-		glVertex3f(vertex[0], vertex[1], vertex[2]);
-	}
-	glEnd();
-	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-}
-
 const float ANGLE_STEP = (float) (2 * M_PI) / 72;
 const hsv fullLight = {
 	49,
@@ -277,7 +314,7 @@ const hsv duskLight = {
 };
 
 Vec3Df calculateSunVector() {
-	return Vec3Df(cos(yawAngle) * sin(pitchAngle), cos(pitchAngle), -sin(yawAngle) * sin(pitchAngle));
+	return Vec3Df(cos(yawAngle) * sin(pitchAngle), cos(pitchAngle), -sin(yawAngle) * sin(pitchAngle)) * sunDist;
 }
 
 rgb sunVectorToRgb(Vec3Df sunVector) {
@@ -328,15 +365,18 @@ void yourKeyboardFunc(char t, int x, int y, Ray ray)
 	// do here, whatever you want with the keyboard input t.
 	if (t == 'w') {
 		pitchAngle += ANGLE_STEP;
+        calculateSun();
 	} else if (t == 's') {
 		pitchAngle -= ANGLE_STEP;
+        calculateSun();
 	} else if (t == 'a') {
 		yawAngle += ANGLE_STEP;
+        calculateSun();
 	} else if (t == 'd') {
 		yawAngle -= ANGLE_STEP;
+        calculateSun();
 	}
 	//...
-
 
 	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;
 }

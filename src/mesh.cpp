@@ -29,8 +29,6 @@
 //IGNORE this file you do not need to understand this code,
 //nor change it.
 
-using namespace std;
-
 //dirty hack... do not do this at home... ;)
 const unsigned int LINE_LEN = 256;
 
@@ -120,7 +118,7 @@ bool Mesh::loadMesh(const char * filename, bool randomizeTriangulation)
 	defaultMat.set_name(std::string("StandardMaterialInitFromTriMesh"));
 	materials.push_back(defaultMat);
 
-	map<string, unsigned int> materialIndex;
+	std::map<std::string, unsigned int> materialIndex;
 	char                   s[LINE_LEN];
 	float                  x, y, z;
 
@@ -337,7 +335,7 @@ bool Mesh::loadMesh(const char * filename, bool randomizeTriangulation)
 	return true;
 }
 
-bool Mesh::loadMtl(const char * filename, std::map<string, unsigned int> & materialIndex)
+bool Mesh::loadMtl(const char * filename, std::map<std::string, unsigned int> & materialIndex)
 {
 	FILE * _in;
 	_in = fopen(filename, "r");

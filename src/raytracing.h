@@ -2,7 +2,7 @@
 #define RAYTRACING_Hjdslkjfadjfasljf
 #include <vector>
 #include "mesh.h"
-#include "BoundingBox.h"
+#include "BoundingStructure.h"
 #include "hsv.h"
 #include "float.h"
 #include <cfloat>
@@ -42,7 +42,7 @@ struct Ray {
 
 struct Intersection {
 	float distance = FLT_MAX;
-	int index = -1;
+	Triangle * triangle;
 	Vec3Df intersect;
 	Vec3Df normal;
 };

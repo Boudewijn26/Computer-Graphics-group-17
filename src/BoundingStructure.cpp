@@ -1,11 +1,12 @@
 #include "BoundingStructure.h"
 #include <limits>
 #include <algorithm>
+#include <stack>
 #include "raytracing.h"
 
-bool doesIntersect(BoundingBox const & boundingBox, Ray const ray) {
-	Vec3Df t1 = (boundingBox.bmin - ray.origin) * ray.invdir;
-	Vec3Df t2 = (boundingBox.bmax - ray.origin) * ray.invdir;
+bool doesIntersect(BoundingBox * boundingBox, Ray ray) {
+	Vec3Df t1 = ((*boundingBox).bmin - ray.origin) * ray.invdir;
+	Vec3Df t2 = ((*boundingBox).bmax - ray.origin) * ray.invdir;
 
 	float tmin = std::min(t1[0], t2[0]);
 	float tmax = std::max(t1[0], t2[0]);
@@ -19,22 +20,22 @@ bool doesIntersect(BoundingBox const & boundingBox, Ray const ray) {
 	return tmax > std::max(tmin, 0.0f);
 }
 
-BoundingBox split(BoundingBox * boundingBox, int threshold) {
+BoundingBox * split(BoundingBox * boundingBox, int threshold) {
 	switch ((*boundingBox).type) {
 		case NONE: {
 			std::cout << "ERROR; SPLIT CALLED ON BOUNDING BOX WITH TYPE NONE" << std::endl;
-			return (*boundingBox);
+			return boundingBox;
 			break; }
 		case TRIANGLE: {
 			std::vector<BoundingBox *> ttriangles = triangleSplit(boundingBox, threshold);
-			BoundingBox tr = BoundingBox(ttriangles);
-			if (ttriangles.size() > threshold) return split((&tr), threshold);
+			BoundingBox * tr = &BoundingBox(ttriangles);
+			if (ttriangles.size() > threshold) return split(tr, threshold);
 			return tr;
 			break; }
 		case BOX: {
 			std::vector<BoundingBox *> bboxes = boxSplit(boundingBox, threshold);
-			BoundingBox br = BoundingBox(bboxes);
-			if (bboxes.size() > threshold) return split((&br), threshold);
+			BoundingBox * br = &BoundingBox(bboxes);
+			if (bboxes.size() > threshold) return split(br, threshold);
 			return br;
 			break; }
 		default: {
@@ -168,4 +169,35 @@ std::vector<BoundingBox *> boxSplit(BoundingBox * boundingBox, int threshold) {
 	return firstSplit;
 
 
+}
+
+std::vector<Triangle *> intersectingTriangles(BoundingBox * boundingBox, Ray ray) {
+	std::stack<BoundingBox *> boundingBoxes;
+	std::vector<Triangle *> r;
+	boundingBoxes.push(boundingBox);
+	while (boundingBoxes.size() > 0) {
+		BoundingBox * box = boundingBoxes.top();
+		boundingBoxes.pop();
+		switch ((*box).type) {
+		case NONE: {
+			std::cout << "CRITICAL ERROR; INTERSECTION CALLED ON BOUNDING BOX WITH TYPE NONE" << std::endl;
+			exit(EXIT_FAILURE);
+			break; }
+		case TRIANGLE: {
+			for (Triangle * triangle : (*box).triangles) {
+				r.push_back(triangle);
+			}
+			break; }
+		case BOX: {
+			for (BoundingBox * bbox : (*box).boxes) {
+				if (doesIntersect(bbox, ray)) boundingBoxes.push(bbox);
+			}
+			break; }
+		default: {
+			std::cout << "CRITICAL ERROR; BOUNDING BOX TYPE " << (*boundingBox).type << " IS UNKNOWN" << std::endl;
+			exit(EXIT_FAILURE);
+			break; }
+		}
+	}
+	return r;
 }
