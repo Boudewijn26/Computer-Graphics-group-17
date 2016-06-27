@@ -467,10 +467,8 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<endl;
 }
 
-Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
+Vec3Df intersectionWithPlane(Vec3Df &dir, Vec3Df &origin, const Vec3Df &planeNormal, Vec3Df &planePoint)
 {
-	Vec3Df dir = testRayDestination;
-	Vec3Df origin = testRayOrigin;
 	dir.normalize();
 	origin.normalize();
 	planePoint.normalize();
@@ -480,7 +478,7 @@ Vec3Df intersectionWithPlane(const Vec3Df & planeNormal, Vec3Df & planePoint)
 	return res;
 }
 
-bool intersectionWithSphere(const Vec3Df & rayOrigin, const Vec3Df & rayDir, const Vec3Df sphereOrigin, const float & radius)
+bool intersectionWithSphere(const Vec3Df &rayOrigin, const Vec3Df &rayDir, const Vec3Df &sphereOrigin, const float &radius)
 {
 	float a = rayOrigin[0] - sphereOrigin[0];
 	float b = rayOrigin[1] - sphereOrigin[1];
