@@ -4,15 +4,15 @@
 
 #include "BoxesTree.h"
 
-bool BoxesNode::findBox(Vec3Df origin, Vec3Df dest, std::vector<BoundingBox*>& out) {
-	if (!element->doesIntersect(origin, dest)) {
+bool BoxesNode::findBox(const Ray& ray, std::vector<BoundingBox*>& out) {
+	if (!element->doesIntersect(ray)) {
 		return false;
 	}
 
 	BoundingBox* leftOut;
 	BoundingBox* rightOut;
-	bool leftIntersect = left->findBox(origin, dest, out);
-	bool rightIntersect = right->findBox(origin, dest, out);
+	bool leftIntersect = left->findBox(ray, out);
+	bool rightIntersect = right->findBox(ray, out);
 
 	return leftIntersect || rightIntersect;
 }
@@ -28,8 +28,8 @@ BoxesNode::~BoxesNode() {
 }
 
 
-bool BoxesEndpoint::findBox(Vec3Df origin, Vec3Df dest, std::vector<BoundingBox*>& out) {
-	if (element->doesIntersect(origin, dest)) {
+bool BoxesEndpoint::findBox(const Ray& ray, std::vector<BoundingBox*>& out) {
+	if (element->doesIntersect(ray)) {
 		out.push_back(element);
 		return true;
 	}
