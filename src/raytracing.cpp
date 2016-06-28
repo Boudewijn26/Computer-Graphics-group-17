@@ -57,7 +57,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/scene.obj", true);
+    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -351,6 +351,13 @@ void yourDebugDraw()
 
 		float specularColor[4] = {1, 1, 1, 0.5};
 		glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+	} else {
+		float lightColor[4] = {1, 1, 1, 0.5};
+		Vec3Df L = MyLightPositions[0];
+		float lightPosition[3] = {L[0], L[1], L[2]};
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor);
 	}
 
 	//draw open gl debug stuff
