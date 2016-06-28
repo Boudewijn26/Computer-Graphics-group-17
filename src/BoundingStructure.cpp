@@ -60,7 +60,7 @@ std::vector<BoundingBox *> triangleSplit(BoundingBox * boundingBox, int threshol
 	std::vector<Triangle *> triangles = (*boundingBox).triangles;
 
 	if (triangles.size() <= threshold) {
-		std::cout << "TRIANGLESPLIT CALLED ON SMALL ENOUGH BOUNDING BOX"  << std::endl;
+	//	std::cout << "TRIANGLESPLIT CALLED ON SMALL ENOUGH BOUNDING BOX"  << std::endl;
 		r.push_back(boundingBox);
 		return r;
 	}
@@ -172,9 +172,8 @@ std::vector<Triangle *> intersectingTriangles(BoundingBox * boundingBox, Ray ray
 			//exit(EXIT_FAILURE);
 			break; }
 		case TRIANGLE: {
-			for (Triangle * triangle : (*box).triangles) {
-				r.push_back(triangle);
-			}
+			r.reserve(r.size() + box->triangles.size());
+			r.insert(r.end(), box->triangles.begin(), box->triangles.end());
 			break; }
 		case BOX: {
 			for (BoundingBox * bbox : (*box).boxes) {
@@ -188,8 +187,8 @@ std::vector<Triangle *> intersectingTriangles(BoundingBox * boundingBox, Ray ray
 			//exit(EXIT_FAILURE);
 			break; }
 		}
-		std::cout << "Boxes left; " << boundingBoxes.size() << std::endl;
-		std::cout << "Stack empty; " << boundingBoxes.empty() << std::endl;
+		// std::cout << "Boxes left; " << boundingBoxes.size() << std::endl;
+		// std::cout << "Stack empty; " << boundingBoxes.empty() << std::endl;
 	}
 	return r;
 }

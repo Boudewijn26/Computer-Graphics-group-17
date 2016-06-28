@@ -42,10 +42,10 @@ struct BoundingBox {
 		bmax = max;
 	}
 
-	BoundingBox(std::vector<Triangle> boundingObjects) {
+	BoundingBox(std::vector<Triangle>& boundingObjects) {
 		std::vector<Triangle *> newBoundingObjects;
-		for (Triangle triangle : boundingObjects) {
-			newBoundingObjects.push_back(&triangle);
+		for (std::vector<Triangle>::iterator it = boundingObjects.begin(); it != boundingObjects.end(); ++it) {
+			newBoundingObjects.push_back(&*it);
 		}
 		
 		type = TRIANGLE;
