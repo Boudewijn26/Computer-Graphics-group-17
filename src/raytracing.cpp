@@ -132,6 +132,8 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
         }
     }
 	if (intersection.index == -1) return false;
+	intersection.dest = dest;
+	intersection.origin = origin;
 
 	result = shade(intersection, level);
 
@@ -204,9 +206,37 @@ Material getMat(int index) {
 	return MyMesh.materials[matIndex];
 }
 
+/*
+	Function to add offsets towards the direction of the reflection so the ray doesnt hit itself
+*/
+void Offset(Vec3Df* hit, Vec3Df* dest){
+	Vec3Df vector = (*dest) - (*hit);
+	vector.normalize();
+	vector *= 0.01;
+	*hit += vector;
+}
+
+/*
+	Function to calculate the reflection Vector
+*/
+Vec3Df reflection(Vec3Df ray, const Vec3Df & vertexPos, Vec3Df & normal, int lvl){
+	ray.normalize();
+
+	//calculate reflection vector
+	Vec3Df Ref = ray -(2 * Vec3Df::dotProduct(normal, ray)*normal);
+	//hit point on mirror
+	Vec3Df hit = vertexPos;
+	//destination point
+	Vec3Df dest = vertexPos + Ref;
+	//add offset so ray doesnt hit itself
+	Offset(&hit, &dest);
+	Vec3Df result;
+	//trace the reflection
+	trace(hit, dest, lvl,result);
+	return result;
+}
+
 Vec3Df shade(Intersection intersection, int level) {
-    Vec3Df refl = Vec3Df(0,0,0);
-	Vec3Df refr = Vec3Df(0,0,0);
 	Vec3Df result = Vec3Df(0,0,0);
 
 	Material material = getMat(intersection.index);
@@ -229,12 +259,13 @@ Vec3Df shade(Intersection intersection, int level) {
 		/* End of shading block */
 	}
 
-  /*  if(level<2) // && reflects
+   if(level<2 ) // && reflects
     {
+		Vec3Df ray = intersection.dest - intersection.origin;
         //calculate reflection vector
-       refl = trace(hit, Vec3Df(0,0,0)reflection, level +1);
+		result += material.Ks() * reflection(ray, intersection.intersect, intersection.normal, level + 1);
     }
-
+	/*
     else if(level<2) // && refracts
     {
         //calculate refraction vector
@@ -320,6 +351,13 @@ void yourDebugDraw()
 
 		float specularColor[4] = {1, 1, 1, 0.5};
 		glLightfv(GL_LIGHT0, GL_SPECULAR, specularColor);
+	} else {
+		float lightColor[4] = {1, 1, 1, 0.5};
+		Vec3Df L = MyLightPositions[0];
+		float lightPosition[3] = {L[0], L[1], L[2]};
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+		glLightfv(GL_LIGHT0, GL_SPECULAR, lightColor);
 	}
 
 	//draw open gl debug stuff
