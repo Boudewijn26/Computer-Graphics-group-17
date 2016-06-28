@@ -221,6 +221,7 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 		std::pair<BoundingBox, BoundingBox> pair = doSplit();
 		BoundingBox* leftBox = new BoundingBox(pair.first);
 		BoundingBox* rightBox = new BoundingBox(pair.second);
+		this->triangleIndices.clear();
 		BoxesTree* left = leftBox->splitToTree(threshold);
 		BoxesTree* right = rightBox->splitToTree(threshold);
 		BoxesNode* node = new BoxesNode(this, left, right);
