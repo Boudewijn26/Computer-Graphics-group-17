@@ -33,6 +33,8 @@ struct Intersection {
 	int index = -1;
 	Vec3Df intersect;
 	Vec3Df normal;
+	Vec3Df dest;
+	Vec3Df origin;
 };
 
 //your main function to rewrite
