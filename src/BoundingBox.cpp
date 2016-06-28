@@ -221,6 +221,7 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 		std::pair<BoundingBox, BoundingBox> pair = doSplit();
 		BoundingBox* leftBox = new BoundingBox(pair.first);
 		BoundingBox* rightBox = new BoundingBox(pair.second);
+		this->triangleIndices.clear();
 		BoxesTree* left = leftBox->splitToTree(threshold);
 		BoxesTree* right = rightBox->splitToTree(threshold);
 		BoxesNode* node = new BoxesNode(this, left, right);
@@ -228,8 +229,7 @@ BoxesTree* BoundingBox::splitToTree(int threshold) {
 	}
 }
 
-bool BoundingBox::doesIntersect(const Vec3Df& rayOrigin, const Vec3Df& dest) {
-	Vec3Df direction = dest - rayOrigin;
+bool BoundingBox::doesIntersect(const Ray& ray) {
 
 	
 	/*
@@ -246,38 +246,28 @@ bool BoundingBox::doesIntersect(const Vec3Df& rayOrigin, const Vec3Df& dest) {
 	}*/
 
 	// After http://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
-	Vec3Df min = origin;
-	Vec3Df max = origin + dimensions;
-	float tmin = (min[0] - rayOrigin[0]) / direction[0];
-	float tmax = (max[0] - rayOrigin[0]) / direction[0];
+	float tmin, tmax, tymin, tymax, tzmin, tzmax;
 
-	if (tmin > tmax) std::swap(tmin, tmax);
-
-	float tymin = (min[1] - rayOrigin[1]) / direction[1];
-	float tymax = (max[1] - rayOrigin[1]) / direction[1];
-
-	if (tymin > tymax) std::swap(tymin, tymax);
+	Vec3Df bounds[] = { origin, origin + dimensions };
+	tmin = (bounds[ray.sign[0]][0] - ray.orig[0]) * ray.invdir[0];
+	tmax = (bounds[1 - ray.sign[0]][0] - ray.orig[0]) * ray.invdir[0];
+	tymin = (bounds[ray.sign[1]][1] - ray.orig[1]) * ray.invdir[1];
+	tymax = (bounds[1 - ray.sign[1]][1] - ray.orig[1]) * ray.invdir[1];
 
 	if ((tmin > tymax) || (tymin > tmax))
 		return false;
-
 	if (tymin > tmin)
 		tmin = tymin;
-
 	if (tymax < tmax)
 		tmax = tymax;
 
-	float tzmin = (min[2] - rayOrigin[2]) / direction[2];
-	float tzmax = (max[2] - rayOrigin[2]) / direction[2];
-
-	if (tzmin > tzmax) std::swap(tzmin, tzmax);
+	tzmin = (bounds[ray.sign[2]][2] - ray.orig[2]) * ray.invdir[2];
+	tzmax = (bounds[1 - ray.sign[2]][2] - ray.orig[2]) * ray.invdir[2];
 
 	if ((tmin > tzmax) || (tzmin > tmax))
 		return false;
-
 	if (tzmin > tmin)
 		tmin = tzmin;
-
 	if (tzmax < tmax)
 		tmax = tzmax;
 

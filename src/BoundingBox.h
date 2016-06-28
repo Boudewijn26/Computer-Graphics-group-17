@@ -6,6 +6,7 @@
 #include "BoxesTree.h"
 
 class BoxesTree;
+class Ray;
 
 class BoundingBox {
 public:
@@ -22,7 +23,7 @@ public:
 
 	std::vector<BoundingBox> split(int threshold);
 	BoxesTree* splitToTree(int threshold);
-	bool doesIntersect(const Vec3Df& origin, const Vec3Df& dest);
+	bool doesIntersect(const Ray& ray);
 
 	BoundingBox &operator=(const BoundingBox &other);
 
