@@ -30,7 +30,7 @@ public:
 	~BoxesTree();
 	virtual bool findBox(const Ray &ray, std::vector<BoundingBox*>& out) = 0;
 	bool findBox(const Vec3Df& origin, const Vec3Df& dest, std::vector<BoundingBox*>& out) {
-		return findBox(Ray(origin, dest), out);
+		return findBox(Ray(origin, origin - dest), out);
 	}
 
 protected:
