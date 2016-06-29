@@ -70,7 +70,7 @@ void init()
 
     BoundingBox main = BoundingBox(MyMesh);
 	BoundingBox* mainTree = new BoundingBox(main);
-	tree = mainTree->splitToTree(700);
+	tree = mainTree->splitToTree(500);
 }
 
 /**
@@ -96,11 +96,6 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	return Vec3Df(0, 0, 0);
 }
 
-float getDistance(const Vec3Df& origin, BoundingBox* box) {
-	Vec3Df diff = origin - (box->getOrigin() + box->getDimensions() * 0.5);
-	return Vec3Df::dotProduct(diff, diff);
-}
-
 bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
 	Intersection intersection = Intersection();
 	Vec3Df intersect;
@@ -109,38 +104,33 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	if (!foundBox) {
 		return false;
 	}
+	vector<int> triangles = vector<int>();
 
-	std::sort(hits.begin(), hits.end(),
-		[origin](BoundingBox* a, BoundingBox* b) -> bool
-	{
-		return getDistance(origin, a) < getDistance(origin, b);
-	});
-
-	for (BoundingBox* box : hits) {
-		float distance = std::sqrt(getDistance(origin, box));
-		float boxDimLength = box->getDimensions().getLength();
-		if (intersection.distance < distance + boxDimLength) {
-			break;
-		}
-		
-		const std::vector<int>& triangles = box->getTriangles();
-		for (int i = 0; i < triangles.size(); ++i) {
-			Triangle triangle = MyMesh.triangles[triangles[i]];
-			if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
-				float distance = (intersect - origin).getLength();
-				if (intersection.distance > distance) {
-					intersection.distance = distance;
-					intersection.index = triangles[i];
-					intersection.intersect = intersect;
-					intersection.normal =
-						Vec3Df::crossProduct(MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p,
-							MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[0]].p);
-					intersection.normal.normalize();
-				}
-			}
-		}
-		
+	for (std::vector<BoundingBox*>::iterator it = hits.begin(); it != hits.end(); ++it) {
+		std::vector<int> &curTriangles = (*it)->getTriangles();
+		triangles.reserve(triangles.size() + curTriangles.size());
+		triangles.insert(triangles.end(), curTriangles.begin(), curTriangles.end());
 	}
+
+	std::vector<int>::iterator it;
+	it = std::unique(triangles.begin(), triangles.end());
+	triangles.resize((unsigned long) distance(triangles.begin(), it));
+
+	for (int i=0; i < triangles.size(); ++i) {
+        Triangle triangle = MyMesh.triangles[triangles[i]];
+        if (intersectionPoint(origin, dest, meshPoints, triangle, intersect)) {
+			float distance = (intersect - origin).getLength();
+			if (intersection.distance > distance) {
+				intersection.distance = distance;
+				intersection.index = triangles[i];
+				intersection.intersect = intersect;
+				intersection.normal =
+					Vec3Df::crossProduct(MyMesh.vertices[triangle.v[1]].p - MyMesh.vertices[triangle.v[0]].p,
+										MyMesh.vertices[triangle.v[2]].p - MyMesh.vertices[triangle.v[0]].p);
+				intersection.normal.normalize();
+			}
+        }
+    }
 	if (intersection.index == -1) return false;
 	intersection.dest = dest;
 	intersection.origin = origin;

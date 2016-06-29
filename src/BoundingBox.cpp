@@ -302,10 +302,3 @@ std::vector<int> &BoundingBox::getTriangles() {
 	return triangleIndices;
 }
 
-const Vec3Df& BoundingBox::getOrigin() {
-	return origin;
-}
-
-const Vec3Df& BoundingBox::getDimensions() {
-	return dimensions;
-}
