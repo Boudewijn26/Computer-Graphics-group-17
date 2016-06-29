@@ -25,6 +25,10 @@ public:
 	BoxesTree* splitToTree(int threshold);
 	bool doesIntersect(const Ray& ray);
 
+	const Vec3Df& getOrigin();
+	const Vec3Df& getDimensions();
+
+
 	BoundingBox &operator=(const BoundingBox &other);
 
 private:
