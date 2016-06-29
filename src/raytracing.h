@@ -40,7 +40,7 @@ struct Intersection {
 //your main function to rewrite
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
 
-bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result);
+bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result, Vec3Df& point);
 
 Vec3Df shade(Intersection intersection, int level);
 
