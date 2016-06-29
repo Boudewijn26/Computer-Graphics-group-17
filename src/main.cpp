@@ -217,6 +217,7 @@ void keyboard(unsigned char key, int x, int y)
 			).count();
 		float totalPixels = WindowSize_X*WindowSize_Y;
 
+		#pragma omp parallel for
 		for (unsigned int y = 0; y < WindowSize_Y; ++y)
 			for (unsigned int x = 0; x < WindowSize_X; ++x)
 			{
