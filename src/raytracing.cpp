@@ -18,6 +18,7 @@ using namespace std;
 //a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
+bool testRayHit = false;
 
 rgb sunColor;
 
@@ -57,7 +58,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj",
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("models/dodgeColorTest.obj", true);
+    MyMesh.loadMesh("models/CarScene.obj", true);
 	MyMesh.computeVertexNormals();
     meshPoints = getVerticePoints(MyMesh.vertices);
 	//one first move: initialize the first light source
@@ -70,7 +71,7 @@ void init()
 
     BoundingBox main = BoundingBox(MyMesh);
 	BoundingBox* mainTree = new BoundingBox(main);
-	tree = mainTree->splitToTree(500);
+	tree = mainTree->splitToTree(800);
 }
 
 /**
@@ -386,9 +387,9 @@ void yourDebugDraw()
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
-	glColor3f(0,1,1);
+	glColor3f(testRayHit,1,1);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
-	glColor3f(0,0,1);
+	glColor3f(testRayHit,0,1);
 	glVertex3f(testRayDestination[0], testRayDestination[1], testRayDestination[2]);
 	glEnd();
 	glPointSize(10);
@@ -479,8 +480,17 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
+
+	Vec3Df result;
+	
+
 	testRayOrigin=rayOrigin;
 	testRayDestination=rayDestination;
+	testRayHit = trace(rayOrigin, rayDestination, 1, result);
+	if (testRayHit) {
+		testRayDestination = result;
+		
+	}
 
 	// do here, whatever you want with the keyboard input t.
 	if (t == 'w') {
