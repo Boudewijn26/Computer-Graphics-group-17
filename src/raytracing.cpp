@@ -93,11 +93,12 @@ void calculateSun() {
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	Vec3Df result;
-	if (trace(origin, dest, 0, result)) return result;
+	Vec3Df neglect;
+	if (trace(origin, dest, 0, result, neglect)) return result;
 	return Vec3Df(0, 0, 0);
 }
 
-bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result) {
+bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result, Vec3Df& point) {
 	Intersection intersection = Intersection();
 	Vec3Df intersect;
 	std::vector<BoundingBox*> hits;
@@ -135,7 +136,7 @@ bool trace(const Vec3Df & origin, const Vec3Df & dest, int level, Vec3Df& result
 	if (intersection.index == -1) return false;
 	intersection.dest = dest;
 	intersection.origin = origin;
-
+	point = intersection.intersect;
 	result = shade(intersection, level);
 
 	return true;
@@ -232,8 +233,9 @@ Vec3Df reflection(Vec3Df ray, const Vec3Df & vertexPos, Vec3Df & normal, int lvl
 	//add offset so ray doesnt hit itself
 	Offset(&hit, &dest);
 	Vec3Df result;
+	Vec3Df neglect;
 	//trace the reflection
-	trace(hit, dest, lvl,result);
+	trace(hit, dest, lvl,result, neglect);
 	return result;
 }
 
@@ -481,12 +483,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
 
+	Vec3Df neglect;
 	Vec3Df result;
 	
 
 	testRayOrigin=rayOrigin;
 	testRayDestination=rayDestination;
-	testRayHit = trace(rayOrigin, rayDestination, 1, result);
+	testRayHit = trace(rayOrigin, rayDestination, 1, neglect, result);
 	if (testRayHit) {
 		testRayDestination = result;
 		
