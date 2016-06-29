@@ -71,6 +71,21 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 		axis = 2;
 	}
 
+	std::vector<float> values;
+	values.reserve(triangleIndices.size() * 3);
+
+	for (int i : triangleIndices) {
+		Triangle triangle = triangles[i];
+
+		values.push_back(vertices[triangle.v[0]].p[axis]);
+		values.push_back(vertices[triangle.v[1]].p[axis]);
+		values.push_back(vertices[triangle.v[2]].p[axis]);
+	}
+
+	std::sort(values.begin(), values.end());
+
+
+
 	float sum = 0;
 	for (std::vector<int>::iterator it = triangleIndices.begin(); it != triangleIndices.end(); ++it) {
 		Triangle triangle = triangles[*it];
@@ -78,7 +93,7 @@ std::pair<BoundingBox, BoundingBox> BoundingBox::doSplit() {
 		sum += vertices[triangle.v[0]].p[axis] + vertices[triangle.v[1]].p[axis] + vertices[triangle.v[2]].p[axis];
 
 	}
-	float splitPoint = sum / (triangleIndices.size() * 3);
+	float splitPoint = values[values.size() / 2];
 
 	std::vector<int> firstBox;
 	std::vector<int> secondBox;
